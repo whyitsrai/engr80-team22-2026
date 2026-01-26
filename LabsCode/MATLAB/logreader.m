@@ -46,5 +46,42 @@ end
 fclose(fid);
 
 %% Process your data here
+data = accelZ;
+confLev = 0.95;
+xbar = mean(data); % Arithmetic mean
+S = std(data); % Standard Deviation
+N = length(data); % Count
+ESE = S/sqrt(N); % Estimated Standard Error
+% tinv is for 1-tailed, for 2-tailed we need to halve the range
+StdT = tinv((1-0.5*(1-confLev)),N-1); % The Student t value
 
-%plot(accelX) % for testing
+accelUnit = xbar/9.81;
+disp(accelUnit)
+%% Plotting 4 Acceleration Graphs
+subplot(2, 2, 1)
+plot(accelX)
+ylabel("Acceleration (m/s^2)")
+title("X-direction")
+subplot(2, 2, 2)
+plot(accelY)
+ylabel("Acceleration (m/s^2)")
+title("Y-direction")
+subplot(2, 2, 3)
+plot(accelZ)
+ylabel("Acceleration (m/s^2)")
+title("Z-direction")
+subplot(2, 2, 4)
+plot(accelZ)
+ylabel("Acceleration (m/s^2)")
+title("Z-direciton (due to gravity)")
+
+%% Obstacle Course
+
+hold on
+plot(accelX)
+plot(accelY)
+plot(accelZ)
+xlabel("Sample Number")
+ylabel("Acceleration")
+hold off
+
