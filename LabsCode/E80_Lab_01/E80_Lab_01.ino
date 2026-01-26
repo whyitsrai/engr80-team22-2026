@@ -8,6 +8,10 @@ Previous Contributors:
     Apoorva Sharma (asharma@hmc.edu) '17 (contributed in 2016)                    
 */
 
+// Set either obstacle course or testing to be 1, set the other to be 0
+#define MOTORTESTING 1
+#define OBSTACLECOURSE 0
+
 /* Libraries */
 
 // general
@@ -75,21 +79,25 @@ void loop() {
   // the value of motorX_power can range from -255 to 255, and sets the PWM applied to the motor 
   // The following example will turn on motor B for four seconds between seconds 4 and 8 
   //Motor Testing
+#ifdef MOTORTESTING
    if (currentTime > 4000 && currentTime <8000) {
-    motorDriver.drive(0,120,0);
-  } else if (currentTime > 12000 && currentTime < 16000) {
     motorDriver.drive(120,0,0);
+  } else if (currentTime > 12000 && currentTime < 16000) {
+    motorDriver.drive(0,120,0);
   } else if (currentTime > 20000 && currentTime < 24000) {
     motorDriver.drive(0,0,120);
   }
   else {
     motorDriver.drive(0,0,0);
   }
+#endif
 
-  //Obstacle Course Code
+#ifdef OBSTACLECOURSE
+  //Obstacle Course Code TODO
   if (currentTime > 10000 && currentTime <15000) {
     motorDriver.drive(0,0,200);
   } else if ()
+#endif
 
   // DONT CHANGE CODE BELOW THIS LINE 
   // --------------------------------------------------------------------------
