@@ -156,6 +156,7 @@ void loop() {
   }
 #endif
 
+<<<<<<< HEAD
 #ifdef OBSTACLECOURSE
 //const int diveDepth = 2; // in feet (actually ideally 2.5)
 //const int diveDistance = 6; // also in feet
@@ -185,6 +186,19 @@ int courseMotorPowerMag = 200; // what absolute amout of power to spin the motor
     Serial.println("Done. Motors Off");
     motorDriver.drive(0,0,0);
   }
+//Possible Course Plan (Please make changes where you see fit!)
+//if (currentTime > 10000 && currentTime <15000) {
+//    motorDriver.drive(0,0,255); // 5 seconds of thrusting downward
+//  } else if (currentTime > 16000 && currentTime <23000){ 
+//    motorDriver.drive(255, 255, 0); // 7 seconds of thrusting forward
+//  } else if (currentTime > 24000 && currentTime < 30000) {
+//    motorDriver.drive(0, 0, 255);// 6 seconds of thrusting upward (extra second to account for possible loss of altitude)
+//  } else if (currentTime > 31000 && currentTime < 36000) {
+//    motorDriver.drive(255, -255, 0); // 5 seconds of perfoming Victory Spin manuver 
+//  }
+//  else {
+//    motorDriver.drive(0, 0, 0);
+//  }
 #endif
 
   // DONT CHANGE CODE BELOW THIS LINE 
