@@ -9,9 +9,9 @@ Previous Contributors:
 */
 
 // Set only one of them to be 1, the other one to be 0
-#define MOTORTESTING 1
-#define TANKTESTING 0
-#define OBSTACLECOURSE 0
+//#define MOTORTESTING
+//#define TANKTESTING
+#define OBSTACLECOURSE
 
 /* Libraries */
 
@@ -35,7 +35,7 @@ Previous Contributors:
 // Motors
 MotorDriver motorDriver;
 // We set power values between -255 and 255 (with - being reversed)
-// motors are [x1, x2, z]
+// motors are [A (X left, black and brown/white), B (X right, black and orange/white), C (Z, blue/white and red)]
 
 // IMU
 SensorIMU imu;
@@ -83,17 +83,18 @@ void loop() {
   // The following example will turn on motor B for four seconds between seconds 4 and 8 
   //Motor Testing
 #ifdef MOTORTESTING
-   if (currentTime > 4000 && currentTime <8000) {
+  if (currentTime <= 4000) {
+    Serial.println("Waiting");
+  } else if (currentTime < 8000) {
     motorDriver.drive(120,0,0);
     Serial.println("Testing Motor 1 at speed 120");
-  } else if (currentTime > 12000 && currentTime < 16000) {
+  } else if (currentTime < 16000) {
     motorDriver.drive(0,120,0);
     Serial.println("Testing Motor 2 at speed 120");
-  } else if (currentTime > 20000 && currentTime < 24000) {
+  } else if (currentTime < 24000) {
     motorDriver.drive(0,0,120);
     Serial.println("Testing Motor 3 at speed 120");
-  }
-  else {
+  } else {
     motorDriver.drive(0,0,0);
     Serial.println("Done Testing Motors. All off.");
   }
@@ -158,15 +159,15 @@ void loop() {
 
 #ifdef OBSTACLECOURSE
 // TODO tune times based on first tank test results
-int courseStartTime = 15000; // delay before running program
-int holdTime = 5000; // how long to hold at the surface before diving down
-int diveTime = 5000; // how long do we dive down for before we traverse
-int traverseTime = 7000; // how long do we traverse for before we surface
-int surfaceTime = 6000; // how long do we surface for before cutting off our motors
+int courseStartTime = 90000; // delay before running program
+int holdTime = 1000; // how long to hold at the surface before diving down
+int diveTime = 3000; // how long do we dive down for before we traverse
+int traverseTime = 5000; // how long do we traverse for before we surface
+int surfaceTime = 15000; // how long do we surface for before cutting off our motors
 int courseMotorPowerMag = 255; // what absolute amout of power to spin the motor to
 
   if (currentTime < courseStartTime) {
-    Serial.println("Waiting for 15 seconds before running obstacle course program");
+    Serial.println("Waiting for 90 seconds before running obstacle course program");
   } else if (currentTime < courseStartTime + holdTime) {
     Serial.println("Ensuring that we are surfaced");
     motorDriver.drive(0,0,courseMotorPowerMag);
