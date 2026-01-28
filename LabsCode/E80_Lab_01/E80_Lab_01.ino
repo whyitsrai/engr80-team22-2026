@@ -8,8 +8,9 @@ Previous Contributors:
     Apoorva Sharma (asharma@hmc.edu) '17 (contributed in 2016)                    
 */
 
-// Set either obstacle course or testing to be 1, set the other to be 0
+// Set only one of them to be 1, the other one to be 0
 #define MOTORTESTING 1
+#define TANKTESTING 0
 #define OBSTACLECOURSE 0
 
 /* Libraries */
@@ -33,6 +34,8 @@ Previous Contributors:
 
 // Motors
 MotorDriver motorDriver;
+// We set power values between -255 and 255 (with - being reversed)
+// motors are [x, y, z]
 
 // IMU
 SensorIMU imu;
@@ -82,21 +85,106 @@ void loop() {
 #ifdef MOTORTESTING
    if (currentTime > 4000 && currentTime <8000) {
     motorDriver.drive(120,0,0);
+    Serial.println("Testing Motor 1 at speed 120");
   } else if (currentTime > 12000 && currentTime < 16000) {
     motorDriver.drive(0,120,0);
+    Serial.println("Testing Motor 2 at speed 120");
   } else if (currentTime > 20000 && currentTime < 24000) {
     motorDriver.drive(0,0,120);
+    Serial.println("Testing Motor 3 at speed 120");
   }
   else {
+    motorDriver.drive(0,0,0);
+    Serial.println("Done Testing Motors. All off.");
+  }
+#endif
+
+#ifdef TANKTESTING
+  // Plot motor acceleration/velocity/distance profile (extract tau)
+  // Can we graph these?
+  int testingStartTime = 15000; // delay before running program
+  int timeMultiples = 5000; // how long to spin motors and/or coast
+  int testingMotorPowerMag = 200; // what absolute amout of power to spin the motor to
+  Serial.print("testingMotorPowerMag is");
+  Serial.println(testingMotorPowerMag);
+
+  if (currentTime < testingStartTime) {
+    Serial.println("Waiting for 15 seconds before running all motors for a few seconds at testingMotorPowerMag duty");
+    motorDriver.drive(0,0,testingMotorPowerMag);
+  } else if (currentTime < testingStartTime + 1*timeMultiples) {
+    Serial.println("Testing Motor 1 at speed testingMotorPowerMag for 5 seconds.");
+    motorDriver.drive(testingMotorPowerMag,0,0);
+  } else if (currentTime < testingStartTime + 2*timeMultiples) {
+    Serial.println("All Motors off for 5 seconds.");
+    motorDriver.drive(0,0,0);
+  } else if (currentTime < testingStartTime + 3*timeMultiples) {
+    Serial.println("Testing Motor 2 at speed testingMotorPowerMag for 5 seconds.");
+    motorDriver.drive(0,testingMotorPowerMag,0);
+  } else if (currentTime < testingStartTime + 4*timeMultiples) {
+    Serial.println("All Motors off for 5 seconds.");
+    motorDriver.drive(0,0,0);
+  } else if (currentTime < testingStartTime + 5*timeMultiples) {
+    Serial.println("Testing Motor 3 at speed testingMotorPowerMag for 5 seconds.");
+    motorDriver.drive(0,0,testingMotorPowerMag);
+  } else if (currentTime < testingStartTime + 6*timeMultiples) {
+    Serial.println("All Motors off for 5 seconds.");
+    motorDriver.drive(0,0,0);
+  } else if (currentTime < testingStartTime + 7*timeMultiples) {
+    Serial.println("Testing Motor 1 at speed testingMotorPowerMag for 5 seconds.");
+    motorDriver.drive(-testingMotorPowerMag,0,0);
+  } else if (currentTime < testingStartTime + 8*timeMultiples) {
+    Serial.println("All Motors off for 5 seconds.");
+    motorDriver.drive(0,0,0);
+  } else if (currentTime < testingStartTime + 9*timeMultiples) {
+    Serial.println("Testing Motor 2 at speed testingMotorPowerMag for 5 seconds.");
+    motorDriver.drive(0,-testingMotorPowerMag,0);
+  } else if (currentTime < testingStartTime + 10*timeMultiples) {
+    Serial.println("All Motors off for 5 seconds.");
+    motorDriver.drive(0,0,0);
+  } else if (currentTime < testingStartTime + 11*timeMultiples) {
+    Serial.println("Testing Motor 3 at speed testingMotorPowerMag for 5 seconds.");
+    motorDriver.drive(0,0,-testingMotorPowerMag);
+  } else if (currentTime < testingStartTime + 12*timeMultiples) {
+    Serial.println("All Motors off for 5 seconds.");
+    motorDriver.drive(0,0,0);
+  } else if (currentTime < testingStartTime + 13*timeMultiples) {
+    Serial.println("Surface");
+    motorDriver.drive(0,0,255);
+  } else {
+    Serial.println("All Motors off, program done");
     motorDriver.drive(0,0,0);
   }
 #endif
 
 #ifdef OBSTACLECOURSE
-  //Obstacle Course Code TODO
-  if (currentTime > 10000 && currentTime <15000) {
-    motorDriver.drive(0,0,200);
-  } else if ()
+//const int diveDepth = 2; // in feet (actually ideally 2.5)
+//const int diveDistance = 6; // also in feet
+// TODO tune times based on first tank test results
+int courseStartTime = 15000; // delay before running program
+int holdTime = 5000; // how long to hold at the surface before diving down
+int diveTime = 5000; // how long do we dive down for before we traverse
+int traverseTime = 5000; // how long do we traverse for before we surface
+int surfaceTime = 5000; // how long do we surface for before cutting off our motors
+int courseMotorPowerMag = 200; // what absolute amout of power to spin the motor to
+
+  if (currentTime < courseStartTime) {
+    Serial.println("Waiting for 15 seconds before running obstacle course program");
+  } else if (currentTime < courseStartTime + holdTime) {
+    Serial.println("Ensuring that we are surfaced");
+    motorDriver.drive(0,0,courseMotorPowerMag);
+  } else if (currentTime < courseStartTime + holdTime + diveTime) {
+    Serial.println("Diving Down");
+    motorDriver.drive(0,0,-courseMotorPowerMag);
+  } else if (currentTime < courseStartTime + holdTime + diveTime + traverseTime) {
+    Serial.println("Traversing to new hoop");
+    motorDriver.drive(0,courseMotorPowerMag,0); // forward is y
+  } else if (currentTime < courseStartTime + holdTime + diveTime + traverseTime + surfaceTime) {
+    Serial.println("Surfacing");
+    motorDriver.drive(0,0,courseMotorPowerMag);
+  } else {
+    Serial.println("Done. Motors Off");
+    motorDriver.drive(0,0,0);
+  }
 #endif
 
   // DONT CHANGE CODE BELOW THIS LINE 
