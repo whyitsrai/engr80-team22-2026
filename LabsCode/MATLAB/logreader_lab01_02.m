@@ -4,7 +4,7 @@
 clear;
 %clf;
 
-filenum = '005'; % file number for the data you want to read
+filenum = '004'; % file number for the data you want to read
 infofile = strcat('INF', filenum, '.TXT');
 datafile = strcat('LOG', filenum, '.BIN');
 
@@ -45,15 +45,30 @@ for i=1:numel(varTypes)
 end
 fclose(fid);
 
-%% Adding trial data to overall datasets
+%% Process your data here!!!
+% make note of which experiences gravity
+%
 accelX2 = accelX;
+
+%
 accelY2 = accelY;
+
+%
 accelZ2 = accelZ;
 
+%% T-test Instructions (Y&Z)
+disp("Pairded Dependent T-test (Y&Z)")
 differenceYZ = accelZ - accelY;
+% find the mean
 dbar_YZ = mean(differenceYZ);
+disp("Mean of YZ difference: " + dbar_YZ)
+% calculate Estimated Standard Error
 yz_SE = std(differenceYZ)/sqrt(length(differenceYZ));
+disp("Standard Deviation is: " + std(differenceYZ))
+disp("Estimated Standard Error is: " + yz_SE)
+% find the t-value and compare it to the critical value from the table
 yz_t = dbar_YZ/yz_SE;
+% critical value from the table
 yz_tinv = tinv(0.05, (length(differenceYZ) - 1));
 disp("yz theoretical t-value: " + yz_tinv)
 if yz_t > tinv(0.05, (length(differenceYZ) - 1))
@@ -61,3 +76,4 @@ if yz_t > tinv(0.05, (length(differenceYZ) - 1))
 else
     disp("y and z difference is not statistically signifiacnt: " + yz_t)
 end
+fprintf('\n');

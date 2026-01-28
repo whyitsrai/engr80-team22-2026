@@ -47,35 +47,39 @@ fclose(fid);
 
 %% Process your data here!!!
 
-% make note of which experiences gravity
-%
-accelX1 = accelX;
+% Acceleration variables initialization
+accelZ_grav = accelZ3;
 
-%
-accelY1 = accelY;
+%% Acceleration Conversion (m/s^2)
+% removing bias from combined datasets
+accelX = accelX +/- xbar;
+accelY = accelY +/- ybar;
+accelZ = accelZ +/- zbar;
 
-%
-accelZ1 = accelZ;
-
-%% T-test Instructions (X&Y)
-
-disp("Pairded Dependent T-test (X&Y)")
-differenceXY = accelY - accelX;
-% find the mean of each
-dbar_XY = mean(differenceXY);
-disp("Mean of XY difference: " + dbar_XY)
-% calculate Standard error
-xy_SE = std(differenceXY)/sqrt(length(differenceXY));
-disp("Standard Deviation is: " + std(differenceXY))
-disp("Estimated Standard Error is: " + xy_SE)
-% find the t-value and compare it to the critical value from the table
-xy_t = dbar_XY/xy_SE;
-% critical value from the table
-xy_tinv = tinv(0.05, (length(differenceXY) - 1));
-disp("xy theoretical t-value: " + xy_tinv)
-if xy_t > tinv(0.05, (length(differenceXY) - 1))
-    disp("x and y difference is statistically significant: " + xy_t)
-else
-    disp("x and y difference is not statistically signifiacnt: " + xy_t)
-end
-fprintf('\n');
+% Conversion Unit
+z = mean(accelZ_grav);
+accelConversion = 9.8/z;
+disp("Conversion ratio: " + accelConversion)
+%% Converting to m/s^2
+accelX = accelX .* accelConversion;
+accelY = accelY .* accelConversion;
+accelZ = accelZ .* accelConversion;
+%% Obstacle Course Plot
+figure;
+hold on
+subplot(1, 1, 1)
+plot(accelX)
+plot(accelY)
+plot(accelZ)
+%labelling
+xlabel("Sample Number")
+ylabel("Acceleration (m/s^2)")
+title("Obstacle Course Acceleration Plot")
+% Setting domain boundaries to crop critical data
+% xlim([x1 x2])
+% ylim([y1 y2])
+legend('accelX', 'accelY', 'accelZ', 'Peak Accel Sample #', 'Peak Acceleration')
+[Max, Index] = max(accelZ);
+disp([Max, Index])
+xline(Index, 'y--')
+yline(Max, 'y--')
