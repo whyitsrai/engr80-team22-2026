@@ -35,7 +35,7 @@ Previous Contributors:
 // Motors
 MotorDriver motorDriver;
 // We set power values between -255 and 255 (with - being reversed)
-// motors are [x, y, z]
+// motors are [x1, x2, z]
 
 // IMU
 SensorIMU imu;
@@ -156,17 +156,14 @@ void loop() {
   }
 #endif
 
-<<<<<<< HEAD
 #ifdef OBSTACLECOURSE
-//const int diveDepth = 2; // in feet (actually ideally 2.5)
-//const int diveDistance = 6; // also in feet
 // TODO tune times based on first tank test results
 int courseStartTime = 15000; // delay before running program
 int holdTime = 5000; // how long to hold at the surface before diving down
 int diveTime = 5000; // how long do we dive down for before we traverse
-int traverseTime = 5000; // how long do we traverse for before we surface
-int surfaceTime = 5000; // how long do we surface for before cutting off our motors
-int courseMotorPowerMag = 200; // what absolute amout of power to spin the motor to
+int traverseTime = 7000; // how long do we traverse for before we surface
+int surfaceTime = 6000; // how long do we surface for before cutting off our motors
+int courseMotorPowerMag = 255; // what absolute amout of power to spin the motor to
 
   if (currentTime < courseStartTime) {
     Serial.println("Waiting for 15 seconds before running obstacle course program");
@@ -178,7 +175,7 @@ int courseMotorPowerMag = 200; // what absolute amout of power to spin the motor
     motorDriver.drive(0,0,-courseMotorPowerMag);
   } else if (currentTime < courseStartTime + holdTime + diveTime + traverseTime) {
     Serial.println("Traversing to new hoop");
-    motorDriver.drive(0,courseMotorPowerMag,0); // forward is y
+    motorDriver.drive(courseMotorPowerMag,courseMotorPowerMag,0);
   } else if (currentTime < courseStartTime + holdTime + diveTime + traverseTime + surfaceTime) {
     Serial.println("Surfacing");
     motorDriver.drive(0,0,courseMotorPowerMag);
@@ -186,19 +183,6 @@ int courseMotorPowerMag = 200; // what absolute amout of power to spin the motor
     Serial.println("Done. Motors Off");
     motorDriver.drive(0,0,0);
   }
-//Possible Course Plan (Please make changes where you see fit!)
-//if (currentTime > 10000 && currentTime <15000) {
-//    motorDriver.drive(0,0,255); // 5 seconds of thrusting downward
-//  } else if (currentTime > 16000 && currentTime <23000){ 
-//    motorDriver.drive(255, 255, 0); // 7 seconds of thrusting forward
-//  } else if (currentTime > 24000 && currentTime < 30000) {
-//    motorDriver.drive(0, 0, 255);// 6 seconds of thrusting upward (extra second to account for possible loss of altitude)
-//  } else if (currentTime > 31000 && currentTime < 36000) {
-//    motorDriver.drive(255, -255, 0); // 5 seconds of perfoming Victory Spin manuver 
-//  }
-//  else {
-//    motorDriver.drive(0, 0, 0);
-//  }
 #endif
 
   // DONT CHANGE CODE BELOW THIS LINE 
