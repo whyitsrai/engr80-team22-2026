@@ -4,7 +4,7 @@
 clear;
 %clf;
 
-filenum = '004'; % file number for the data you want to read
+filenum = '001'; % file number for the data you want to read
 infofile = strcat('INF', filenum, '.TXT');
 datafile = strcat('LOG', filenum, '.BIN');
 
@@ -47,33 +47,40 @@ fclose(fid);
 
 %% Process your data here!!!
 % make note of which experiences gravity
-%
+% zero
 accelX2 = accelX;
 
-%
+% grav
 accelY2 = accelY;
 
-%
+% zero
 accelZ2 = accelZ;
 
-%% T-test Instructions (Y&Z)
-disp("Pairded Dependent T-test (Y&Z)")
-differenceYZ = accelZ - accelY;
-% find the mean
-dbar_YZ = mean(differenceYZ);
-disp("Mean of YZ difference: " + dbar_YZ)
+%% T-test Instructions (X&Z)
+
+disp("Pairded Dependent T-test (X&Z)")
+differenceXZ = accelZ - accelX;
+% find the mean of each
+dbar_XZ = mean(differenceXZ); 
+disp("Mean of XZ difference: " + dbar_XZ)
 % calculate Estimated Standard Error
-yz_SE = std(differenceYZ)/sqrt(length(differenceYZ));
-disp("Standard Deviation is: " + std(differenceYZ))
-disp("Estimated Standard Error is: " + yz_SE)
+xz_SE = std(differenceXZ)/sqrt(length(differenceXZ));
+disp("Standard Deviation is: " + std(differenceXZ))
+disp("Estimated Standard Error is: " + xz_SE)
 % find the t-value and compare it to the critical value from the table
-yz_t = dbar_YZ/yz_SE;
+xz_t = dbar_XZ/xz_SE;
 % critical value from the table
-yz_tinv = tinv(0.05, (length(differenceYZ) - 1));
-disp("yz theoretical t-value: " + yz_tinv)
-if yz_t > tinv(0.05, (length(differenceYZ) - 1))
-    disp("y and z difference is statistically significant: " + yz_t)
+xz_tinv = tinv(0.025, (length(differenceXZ) - 1));
+disp("xz theoretical t-value: " + xz_tinv)
+if abs(xz_t) > tinv(0.025, (length(differenceXZ) - 1))
+    disp("x and z difference is statistically significant: " + xz_t)
 else
-    disp("y and z difference is not statistically signifiacnt: " + yz_t)
+    disp("x and z difference is not statistically signifiacnt: " + xz_t)
 end
 fprintf('\n');
+%%
+hold on
+plot(accelX)
+plot(accelY)
+plot(accelZ)
+legend("accelX", "accelY", "accelZ")

@@ -4,7 +4,7 @@
 clear;
 %clf;
 
-filenum = '004'; % file number for the data you want to read
+filenum = '008'; % file number for the data you want to read
 infofile = strcat('INF', filenum, '.TXT');
 datafile = strcat('LOG', filenum, '.BIN');
 
@@ -48,13 +48,13 @@ fclose(fid);
 %% Process your data here!!!
 
 % Acceleration variables initialization
-accelZ_grav = accelZ3;
+accelZ_grav = accelZ1;
 
 %% Acceleration Conversion (m/s^2)
 % removing bias from combined datasets
-accelX = accelX +/- xbar;
-accelY = accelY +/- ybar;
-accelZ = accelZ +/- zbar;
+accelX = accelX - xbar;
+accelY = accelY - ybar;
+accelZ = accelZ - zbar;
 
 % Conversion Unit
 z = mean(accelZ_grav);
@@ -65,21 +65,30 @@ accelX = accelX .* accelConversion;
 accelY = accelY .* accelConversion;
 accelZ = accelZ .* accelConversion;
 %% Obstacle Course Plot
+totAccel = sqrt((accelX).^2 + (accelY).^2 + (accelZ).^2);
 figure;
 hold on
 subplot(1, 1, 1)
 plot(accelX)
 plot(accelY)
 plot(accelZ)
+plot(totAccel)
 %labelling
 xlabel("Sample Number")
 ylabel("Acceleration (m/s^2)")
 title("Obstacle Course Acceleration Plot")
 % Setting domain boundaries to crop critical data
-% xlim([x1 x2])
-% ylim([y1 y2])
-legend('accelX', 'accelY', 'accelZ', 'Peak Accel Sample #', 'Peak Acceleration')
-[Max, Index] = max(accelZ);
+xlim([890 1210])
+legend('accelX', 'accelY', 'accelZ', 'Magnitude of Acceleration')
+[Max, Index] = max(accelZ(890: 1210));
 disp([Max, Index])
-xline(Index, 'y--')
-yline(Max, 'y--')
+xline(1125, 'm--')
+yline(11.706, 'm--')
+%%
+hold on
+plot(accelX)
+plot(accelY)
+plot(accelZ)
+legend("accelX", "accelY", "accelZ")
+%%
+

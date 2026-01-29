@@ -4,7 +4,7 @@
 clear;
 %clf;
 
-filenum = '004'; % file number for the data you want to read
+filenum = '000'; % file number for the data you want to read
 infofile = strcat('INF', filenum, '.TXT');
 datafile = strcat('LOG', filenum, '.BIN');
 
@@ -48,19 +48,19 @@ fclose(fid);
 %% Process your data here!!!
 
 % make note of which experiences gravity
-%
+%zero
 accelX1 = accelX;
 
-%
+%zero
 accelY1 = accelY;
 
-%
+%grav
 accelZ1 = accelZ;
 
 %% T-test Instructions (X&Y)
 
 disp("Pairded Dependent T-test (X&Y)")
-differenceXY = accelY - accelX;
+differenceXY = accelX - accelY;
 % find the mean of each
 dbar_XY = mean(differenceXY);
 disp("Mean of XY difference: " + dbar_XY)
@@ -71,11 +71,17 @@ disp("Estimated Standard Error is: " + xy_SE)
 % find the t-value and compare it to the critical value from the table
 xy_t = dbar_XY/xy_SE;
 % critical value from the table
-xy_tinv = tinv(0.05, (length(differenceXY) - 1));
+xy_tinv = tinv(0.025, (length(differenceXY) - 1));
 disp("xy theoretical t-value: " + xy_tinv)
-if xy_t > tinv(0.05, (length(differenceXY) - 1))
+if abs(xy_t) > tinv(0.025, (length(differenceXY) - 1))
     disp("x and y difference is statistically significant: " + xy_t)
 else
     disp("x and y difference is not statistically signifiacnt: " + xy_t)
 end
 fprintf('\n');
+%%
+hold on
+plot(accelX)
+plot(accelY)
+plot(accelZ)
+legend("accelX", "accelY", "accelZ")

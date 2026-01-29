@@ -1,8 +1,8 @@
 %% Initialize X, Y, & Z Datasets
 
-accelX_Total = [accelX1, accelX2];
-accelY_Total = [accelY1, accelY2];
-accelZ_Total = [accelZ1, accelZ2];
+accelX_Total = [accelX1; accelX2];
+accelY_Total = [accelY1; accelY3];
+accelZ_Total = [accelZ2; accelZ3];
 
 %% Statistics for Each Direction
 
@@ -19,7 +19,7 @@ disp("Number of samples: " + N);
 ESE = S/sqrt(N); % Estimated Standard Error
 disp("Standard Error: " + ESE);
 % tinv is for 1-tailed, for 2-tailed we need to halve the range
-StdT = tinv((1-confLev),N-1); % The Student t value
+StdT = tinv((1-confLev)/2,N-1); % The Student t value
 disp("t value is: " + StdT);
 confBounds = StdT*(S/sqrt(N));
 disp("Confidence Bounds are: " + confBounds);
@@ -38,7 +38,7 @@ disp("Number of samples: " + N)
 ESE = S/sqrt(N); % Estimated Standard Error
 disp("Standard Error: " + ESE)
 % tinv is for 1-tailed, for 2-tailed we need to halve the range
-StdT = tinv((1-confLev),N-1); % The Student t value
+StdT = tinv((1-confLev)/2,N-1); % The Student t value
 disp("t value is: " + StdT)
 confBounds = StdT*(S/sqrt(N));
 disp("Confidence Bounds are: " + confBounds)
@@ -57,7 +57,7 @@ disp("Number of samples: " + N)
 ESE = S/sqrt(N); % Estimated Standard Error
 disp("Standard Error: " + ESE)
 % tinv is for 1-tailed, for 2-tailed we need to halve the range
-StdT = tinv((1-confLev),N-1); % The Student t value
+StdT = tinv((1-confLev/2),N-1); % The Student t value
 disp("t value is: " + StdT)
 confBounds = StdT*(S/sqrt(N));
 disp("Confidence Bounds are: " + confBounds)
@@ -67,18 +67,22 @@ fprintf('\n');
 hold on
 subplot(3, 1, 1)
 plot(accelX_Total)
+xlim([0 200])
 ylabel("Acceleration (Teensy Units)")
 title("X-direction")
 yline(xbar, 'y--')
 
+
 subplot(3, 1, 2)
 plot(accelY_Total)
+xlim([0 200])
 ylabel("Acceleration (Teensy Units)")
 title("Y-direction")
 yline(ybar, 'y--')
 
 subplot(3, 1, 3)
 plot(accelZ_Total)
+xlim([0 200])
 xlabel("Sample #")
 ylabel("Acceleration (Teensy Units)")
 title("Z-direction")
@@ -86,8 +90,8 @@ yline(zbar, 'y--')
 
 %% Statistics for Accleration due to Gravity (Z-direction)
 % Z-direcion
-disp("Stats for Z-Direciton")
-data = accelZ_Total;
+disp("Stats for Z-Direciton due to Gravity")
+data = accelZ1;
 confLev = 0.95;
 z_gravbar = mean(data); % Arithmetic mean
 disp("Sample Mean is: " + z_gravbar)
@@ -98,7 +102,7 @@ disp("Number of samples: " + N)
 ESE = S/sqrt(N); % Estimated Standard Error
 disp("Standard Error: " + ESE)
 % tinv is for 1-tailed, for 2-tailed we need to halve the range
-StdT = tinv((1-confLev),N-1); % The Student t value
+StdT = tinv((1-confLev)/2,N-1); % The Student t value
 disp("t value is: " + StdT)
 confBounds = StdT*(S/sqrt(N));
 disp("Confidence Bounds are: " + confBounds)
@@ -107,8 +111,10 @@ fprintf('\n');
 %% Plotting Accleration due to Gravity (Z-direction)
 figure;
 hold on
-plot(accelZ3)
+plot(accelZ1)
+xlim([0 200])
 xlabel("Sample #")
 ylabel("Acceleration (Teensy units)")
 title("Z-direciton (due to gravity)")
+yline(z_gravbar, 'y--')
 hold off
