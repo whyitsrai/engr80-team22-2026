@@ -79,6 +79,7 @@ else
 end
 fprintf('\n');
 %%
+figure;
 hold on
 plot(accelX)
 plot(accelY)

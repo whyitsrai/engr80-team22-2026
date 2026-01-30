@@ -64,6 +64,7 @@ disp("Confidence Bounds are: " + confBounds)
 fprintf('\n');
 
 %% Plotting Zero Acceleration Graphs
+figure;
 hold on
 subplot(3, 1, 1)
 plot(accelX_Total)

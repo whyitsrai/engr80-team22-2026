@@ -48,18 +48,19 @@ fclose(fid);
 %% Process your data here!!!
 
 % Acceleration variables initialization
-accelZ_grav = accelZ1;
+% accelZ_grav = accelZ1;
 
 %% Acceleration Conversion (m/s^2)
 % removing bias from combined datasets
-accelX = accelX - xbar;
-accelY = accelY - ybar;
-accelZ = accelZ - zbar;
-
-% Conversion Unit
-z = mean(accelZ_grav);
-accelConversion = 9.8/z;
-disp("Conversion ratio: " + accelConversion)
+% accelX = accelX - xbar;
+% accelY = accelY - ybar;
+% accelZ = accelZ - zbar;
+% 
+% % Conversion Unit
+% z = mean(accelZ_grav);
+% accelConversion = 9.8/z;
+% disp("Conversion ratio: " + accelConversion)
+accelConversion = 0.010035;
 %% Converting to m/s^2
 accelX = accelX .* accelConversion;
 accelY = accelY .* accelConversion;
