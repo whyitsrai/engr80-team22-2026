@@ -83,8 +83,8 @@ xlim([890 1210])
 legend('accelX', 'accelY', 'accelZ', 'Magnitude of Acceleration', "Max Mag. Sample #", "Max Mag. of Acceleration")
 [Max, Index] = max(totAccel(890: 1210));
 disp([Max, Index])
-xline((Index + 890), 'm--')
-yline(Max, 'm--')
+xline(Inde, 'm--')
+yline(11.706, 'm--')
 
 
 
