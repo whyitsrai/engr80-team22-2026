@@ -158,13 +158,12 @@ void loop() {
 #endif
 
 #ifdef OBSTACLECOURSE
-// TODO tune times based on first tank test results
 int courseStartTime = 90000; // delay before running program
 int holdTime = 1000; // how long to hold at the surface before diving down
 int diveTime = 3000; // how long do we dive down for before we traverse
 int traverseTime = 5000; // how long do we traverse for before we surface
 int surfaceTime = 15000; // how long do we surface for before cutting off our motors
-int courseMotorPowerMag = 255; // what absolute amout of power to spin the motor to
+int courseMotorPowerMag = 255; // what absolute amount of power to spin the motor to
 
   if (currentTime < courseStartTime) {
     Serial.println("Waiting for 90 seconds before running obstacle course program");

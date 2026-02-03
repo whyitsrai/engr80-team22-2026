@@ -3,14 +3,15 @@
 
 function teensyanalog=matlablogging(length)
     length = 5000;  % 5000 is hardcoded buffer size on Teensy
-    s = serial('COM7','BaudRate',115200);
+    s = serial('COM7','BaudRate',115200); % TODO edit serial port once teensy is plugged in
     set(s,'InputBufferSize',2*length)
     fopen(s);
     fprintf(s,'%d',2*length)         % Send length to Teensy
-    dat = fread(s,2*length,'uint8');      
+    dat = fread(s,2*length,'uint8');
     fclose(s);
     teensyanalog = uint8(dat);
     teensyanalog = typecast(teensyanalog,'uint16');
+    save('teensyanalogdata.mat') % added this for redundancy backup
 end
 
 
