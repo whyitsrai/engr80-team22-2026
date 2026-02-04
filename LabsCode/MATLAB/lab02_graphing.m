@@ -7,9 +7,8 @@ clear;
 readfile = true; %% TODO update when in lab to be true
 
 if readfile
-    load("10and20.mat"); % variable is teensyanalog
+    load("1kand2k.mat"); % variable is teensyanalog
     arrsize = size(teensyanalog);
-    disp(arrsize(1));
     samples = 1:arrsize(1);
     teensyanalog = double(teensyanalog);
     teensyanalog = teensyanalog';
@@ -42,12 +41,13 @@ yu = max(teensyanalog);
 yl = min(teensyanalog);
 yr = abs((yu-yl));
 ym = mean(teensyanalog);
-[pks, locs] = findpeaks(teensyanalog,samples,'MinPeakHeight',yu*0.95,'MinPeakProminence',yr/5); % find sin wave peaks of measured function
+[pks, locs] = findpeaks(teensyanalog,samples,'MinPeakHeight',yu*0.95,'MinPeakProminence',yr/5,'MinPeakDistance', 100); % find sin wave peaks of measured function
 period_samples = diff(locs);
 predicted_period = mean(period_samples);
 model = fittype('a*sin(b*x+c)+d',dependent="y",independent="x",coefficients=["a" "b" "c" "d"]);
 excludedPoints = find(teensyanalog <= yl+(0.01*yr)); % exclude all points within 1% of zero from fit
-fittedmodel = fit(samples',teensyanalog',model,'start',[yr/2,(2*pi)/predicted_period,rand()*100,ym],'Exclude', excludedPoints);
+disp("Predicted Period: " + predicted_period);
+fittedmodel = fit(samples',teensyanalog',model,'start',[yr/2,(2*pi)/predicted_period,(locs(1)*2*pi),ym],'Exclude', excludedPoints);
 plot(fittedmodel)
 model_coeffs = coeffvalues(fittedmodel);
 legend("Teensy ADC Measurement", "Predicted Voltage Signal")
@@ -74,10 +74,10 @@ plot(time, voltage, '.', 'MarkerSize',1)
 % a sin(bx + c) + d
 sin_a = model_coeffs(1)/(2*model_coeffs(1))*signal_amplitude;
 sin_b = 2*pi*signal_frequency;
-sin_c = (model_coeffs(2)/predicted_period)*(1/signal_frequency);
+sin_c = (model_coeffs(3)/predicted_period)*(1/signal_frequency);
 sin_d = (model_coeffs(4)/(2*model_coeffs(1)))*signal_amplitude;
 y=sin_a*sin(sin_b*time+sin_c) + sin_d;
-plot(time, y);
+%plot(time, y);
 legend("Teensy ADC Measurement", "Predicted Voltage Signal")
 hold off
 
