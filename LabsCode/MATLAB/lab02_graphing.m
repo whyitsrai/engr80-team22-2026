@@ -66,10 +66,9 @@ end
 % Plot of Raw measurements
 f = figure;
 hold on
-xlabel("Teensy Sample Number")
-ylabel("Teensy ADC measurement")
 
 plot(xtesting, ytesting, '.', 'MarkerSize',1)
+
 yu = max(ytesting);
 yl = min(ytesting);
 yr = abs((yu-yl));
@@ -83,6 +82,8 @@ fittedmodel = fit(xtesting',ytesting',model,'start',[yr/2,(2*pi)/predicted_perio
 plot(fittedmodel)
 model_coeffs = coeffvalues(fittedmodel);
 legend("Teensy ADC Measurement", "Predicted Voltage Signal")
+xlabel("Teensy Sample Number")
+ylabel("Teensy ADC measurement")
 hold off
 
 %% Plot of measurements with voltage frequency conversion
