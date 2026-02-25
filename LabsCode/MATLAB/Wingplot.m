@@ -6,43 +6,79 @@
 
 % Get values
 % Reynolds Numbers
-%vels = [5 10 15 20 25 30 35 40 45];
-R5 = [1 2 3 4 5 6 7 8 9];
-R15 = [1 2 3 4 5 6 7 8 9];
-R45 = [1 2 3 4 5 6 7 8 9];
+FWR5 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
+FWR15 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
+FWR45 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
 
 % Wing Lift Forces: Get Directly from COMSOL
-LF5 = [1 1 1 1 1 1 1 1 1];
-LF15 = [2 2 2 1 1 1 1 1 1];
-LF45 = [3 3 3 1 1 1 1 1 1];
+FWLF5 = [0.041682 0.1667 0.3751 0.66672 1.042 1.4993 2.0421 2.6673 3.3762];
+FWLF15 = [0.11673 0.4663 1.0487 1.8642 2.9121 4.1942 5.7086 7.4546 9.434];
+FWLF45 = [0.2264 0.90495 2.0357 3.619 5.6545 8.1424 11.083 14.475 18.319];
 
 % Wing Lift Coefficients: Program COMSOL to compute these
-C5 = [1 1 1 1 1 1 1 1 1];
-C15 = [4 4 1 1 1 1 1 1 1];
-C45 = [3 3 1 1 1 1 1 1 1];
+FWC5 = [0.09622686693 0.09621070676 0.09621711953 0.09619916379 0.09622224974 0.09614657912 0.09621188462 0.09621431394 0.09622566988];
+FWC15 = [0.2694823227 0.2691244905 0.269002648 0.2689802033 0.2689144083 0.2689641714 0.2689560573 0.2689008453 0.2688800929];
+FWC45 = [0.5226659631 0.5222908163 0.522178593 0.5221753866 0.5221580721 0.5221529419 0.5221665527 0.5221393148 0.5221130403];
 
-
+figure(1)
 subplot(2, 1, 1);
-plot(R5,LF5,'k');
+plot(FWR5,FWLF5,'k');
 hold on;
-plot(R15,LF15,'b');
-plot(R45,LF45,'r');
+plot(FWR15,FWLF15,'b');
+plot(FWR45,FWLF45,'r');
 ylabel('Lift Force [N]');
 xlabel('Reynolds Number (Re = Vl)');
-legend('Attack angle: 5°','Attack angle: 15°','Attack angle:45°');
-title("Wings Lift Force vs. Reynolds Number ");
+legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
+title("Flat Wing Lift Force vs. Reynolds Number ");
 hold off;
 
 subplot(2, 1, 2);
-plot(R5,C5,'k');
+plot(FWR5,FWC5,'k');
 hold on;
-plot(R15,C15,'b');
-plot(R45,C45,'r');
+plot(FWR15,FWC15,'b');
+plot(FWR45,FWC45,'r');
 
 ylabel('Lift Coefficient');
 xlabel('Reynolds Number (Re = Vl)');
-legend('Attack angle: 5°','Attack angle: 15°','Attack angle: 45°');
-title("Wings Lift Coefficient vs. Reynolds Number ");
+legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
+title("Flat Wing Lift Coefficient vs. Reynolds Number ");
 hold off;
 
 
+AFR5 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
+AFR15 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
+AFR45 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
+
+% Wing Lift Forces: Get Directly from COMSOL
+AFLF5 = [0.01612 0.064547 0.14522 0.25845 0.40421 0.58204 0.79168 1.0348 1.3093];
+AFLF15 = [0.088406 0.35358 0.79547 1.4137 2.2087 3.1805 4.3291 5.655 7.157];
+AFLF45 = [0.17135 0.6849 1.5399 2.7375 4.277 6.1586 8.3828 10.949 13.858];
+
+% Wing Lift Coefficients: Program COMSOL to compute these
+AFC5 = [0.03721455532 0.03725322429 0.0372504668 0.03729102754 0.03732629133 0.03732485487 0.03729936086 0.03732709934 0.03731658953];
+AFC15 = [0.2040936711 0.2040682765 0.2040464731 0.2039788185 0.2039597726 0.203957977 0.203962034 0.2039860328 0.2039829155];
+AFC45 = [0.3955777949 0.3952892205 0.3950006461 0.3949862174 0.3949544742 0.3949365185 0.3949488205 0.3949501456 0.3949692948];
+
+figure(2)
+subplot(2, 1, 1);
+plot(AFR5,AFLF5,'k');
+hold on;
+plot(AFR15,AFLF15,'b');
+plot(AFR45,AFLF45,'r');
+ylabel('Lift Force [N]');
+xlabel('Reynolds Number (Re = Vl)');
+legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
+title("Airfoil Wing Lift Force vs. Reynolds Number ");
+hold off;
+
+subplot(2, 1, 2);
+plot(AFR5,AFC5,'k');
+hold on;
+plot(AFR15,AFC15,'b');
+plot(AFR45,AFC45,'r');
+
+ylabel('Lift Coefficient');
+xlabel('Reynolds Number (Re = Vl)');
+legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
+title("Airfoil Wing Lift Coefficient vs. Reynolds Number ");
+hold off;
