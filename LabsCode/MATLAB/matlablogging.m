@@ -11,7 +11,7 @@ function teensyanalog=matlablogging(length)
     fclose(s);
     teensyanalog = uint8(dat);
     teensyanalog = typecast(teensyanalog,'uint16');
-    save('10mand20m.mat') % added this for redundancy backup
+    save('175khz.mat') % added this for redundancy backup
 end
 
 

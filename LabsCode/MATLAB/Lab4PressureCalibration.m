@@ -5,8 +5,8 @@
 
 % We will create x vector as the dept in meters and the output voltage
 % measured.
-x = [1.93, 1.66, 1.391, 1.121, 0.852]; % Voltage [V]
-y = [0, 0.1, 0.2, 0.3, 0.4]; % Dept [m]
+x = [2.54 2.32 2.12 1.9 1.68]; % Voltage [V]
+y = [0 0.1 0.2 0.3 0.4]; % Dept [m]
 
 %% The follow code was credited to Prof. Spencer code given in the E80
 %% Website

@@ -7,7 +7,7 @@ clear;
 readfile = true; %% TODO update when in lab to be true
 
 if readfile
-    load("1kand2k.mat"); % variable is teensyanalog
+    load("10mand20m.mat"); % variable is teensyanalog
     arrsize = size(teensyanalog);
     samples = 1:arrsize(1);
     teensyanalog = double(teensyanalog);
@@ -42,13 +42,14 @@ yl = min(teensyanalog);
 yr = abs((yu-yl));
 ym = mean(teensyanalog);
 [pks, locs] = findpeaks(teensyanalog,samples,'MinPeakHeight',yu*0.95,'MinPeakProminence',yr/5,'MinPeakDistance', 100); % find sin wave peaks of measured function
+findpeaks(teensyanalog,samples,'MinPeakHeight',yu*0.95,'MinPeakProminence',yr/5,'MinPeakDistance', 100); % find sin wave peaks of measured function
 period_samples = diff(locs);
 predicted_period = mean(period_samples);
 model = fittype('a*sin(b*x+c)+d',dependent="y",independent="x",coefficients=["a" "b" "c" "d"]);
 excludedPoints = find(teensyanalog <= yl+(0.01*yr)); % exclude all points within 1% of zero from fit
 disp("Predicted Period: " + predicted_period);
 fittedmodel = fit(samples',teensyanalog',model,'start',[yr/2,(2*pi)/predicted_period,(locs(1)*2*pi),ym],'Exclude', excludedPoints);
-plot(fittedmodel)
+%plot(fittedmodel)
 model_coeffs = coeffvalues(fittedmodel);
 legend("Teensy ADC Measurement", "Predicted Voltage Signal")
 xlabel("Teensy Sample Number")
@@ -57,7 +58,7 @@ hold off
 
 %% Plot of measurements with voltage frequency conversion
 %% TODO change below variables
-signal_frequency = 100; % in Hz
+signal_frequency = 200; % in Hz
 signal_amplitude = 1; % Vp2p
 sample_rate = predicted_period*signal_frequency; % sample rate in Hz
 
@@ -84,4 +85,5 @@ hold off
 disp("Measured Values:");
 disp("Sample rate: " + sample_rate + " samples/sec")
 disp("P2P voltage: " + 2*sin_a)
-disp("RMS voltage: " + sin_a / sqrt(2))
+disp("(Proabbly Wrong) RMS voltage: " + sin_a / (2*sqrt(2)))
+disp("RMS voltage: " + model_coeffs(1)*0.0032)
