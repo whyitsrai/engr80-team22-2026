@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "AS726x-Spectral_REV-D-eagle-import")(type "KiCad")(uri "${KIPRJMOD}/AS726x-Spectral_REV-D-eagle-import.kicad_sym")(options "")(descr ""))
+)

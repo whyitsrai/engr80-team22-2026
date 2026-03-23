@@ -19,32 +19,6 @@ FWLF45 = [0.2264 0.90495 2.0357 3.619 5.6545 8.1424 11.083 14.475 18.319];
 FWC5 = [0.09622686693 0.09621070676 0.09621711953 0.09619916379 0.09622224974 0.09614657912 0.09621188462 0.09621431394 0.09622566988];
 FWC15 = [0.2694823227 0.2691244905 0.269002648 0.2689802033 0.2689144083 0.2689641714 0.2689560573 0.2689008453 0.2688800929];
 FWC45 = [0.5226659631 0.5222908163 0.522178593 0.5221753866 0.5221580721 0.5221529419 0.5221665527 0.5221393148 0.5221130403];
-
-figure(1)
-subplot(2, 1, 1);
-plot(FWR5,FWLF5,'k');
-hold on;
-plot(FWR15,FWLF15,'b');
-plot(FWR45,FWLF45,'r');
-ylabel('Lift Force [N]');
-xlabel('Reynolds Number (Re = Vl)');
-legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
-title("Flat Wing Lift Force vs. Reynolds Number ");
-hold off;
-
-subplot(2, 1, 2);
-plot(FWR5,FWC5,'k');
-hold on;
-plot(FWR15,FWC15,'b');
-plot(FWR45,FWC45,'r');
-
-ylabel('Lift Coefficient');
-xlabel('Reynolds Number (Re = Vl)');
-legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
-title("Flat Wing Lift Coefficient vs. Reynolds Number ");
-hold off;
-
-
 AFR5 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
 AFR15 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
 AFR45 = [31916.43077 63832.86153 95749.2923 127665.7231 159582.1538 191498.5846 223415.0154 255331.4461 287247.8769];
@@ -59,26 +33,34 @@ AFC5 = [0.03721455532 0.03725322429 0.0372504668 0.03729102754 0.03732629133 0.0
 AFC15 = [0.2040936711 0.2040682765 0.2040464731 0.2039788185 0.2039597726 0.203957977 0.203962034 0.2039860328 0.2039829155];
 AFC45 = [0.3955777949 0.3952892205 0.3950006461 0.3949862174 0.3949544742 0.3949365185 0.3949488205 0.3949501456 0.3949692948];
 
-figure(2)
+figure(1)
 subplot(2, 1, 1);
-plot(AFR5,AFLF5,'k');
+plot(FWR5,FWLF5,'k');
 hold on;
-plot(AFR15,AFLF15,'b');
-plot(AFR45,AFLF45,'r');
+plot(FWR15,FWLF15,'b');
+plot(FWR45,FWLF45,'r');
+plot(AFR5,AFLF5,'k:');
+plot(AFR15,AFLF15,'b:');
+plot(AFR45,AFLF45,'r:');
 ylabel('Lift Force [N]');
-xlabel('Reynolds Number (Re = Vl)');
-legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
-title("Airfoil Wing Lift Force vs. Reynolds Number ");
+xlabel('Reynolds Number');
+legend('Flat Wing Angle of Attack: 5°','Flat Wing Angle of Attack: 15°','Flat Wing Angle of Attack: 45°',...
+'Airfoil Angle of Attack: 5°','Airfoil Angle of Attack: 15°','Airfoil Angle of Attack: 45°');
+title("Wing Lift Force vs. Reynolds Number ");
 hold off;
 
 subplot(2, 1, 2);
-plot(AFR5,AFC5,'k');
+plot(FWR5,FWC5,'k');
 hold on;
-plot(AFR15,AFC15,'b');
-plot(AFR45,AFC45,'r');
+plot(FWR15,FWC15,'b');
+plot(FWR45,FWC45,'r');
+plot(AFR5,AFC5,'k:');
+plot(AFR15,AFC15,'b:');
+plot(AFR45,AFC45,'r:');
 
 ylabel('Lift Coefficient');
-xlabel('Reynolds Number (Re = Vl)');
-legend('Angle of Attack: 5°','Angle of Attack: 15°','Angle of Attack: 45°');
-title("Airfoil Wing Lift Coefficient vs. Reynolds Number ");
+xlabel('Reynolds Number');
+legend('Flat Wing Angle of Attack: 5°','Flat Wing Angle of Attack: 15°','Flat Wing Angle of Attack: 45°',...
+'Airfoil Angle of Attack: 5°','Airfoil Angle of Attack: 15°','Airfoil Angle of Attack: 45°');
+title("Wing Lift Coefficient vs. Reynolds Number ");
 hold off;
