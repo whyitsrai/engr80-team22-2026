@@ -2,11 +2,20 @@
 #define __DEPTHCONTROL_H__
 
 #define DEPTH_MARGIN 0.05 // depth margin in meters
+#define MAX_CONTROL_EFFORT 200
 
 #include <Arduino.h>
 #include "MotorDriver.h"
 #include "ZStateEstimator.h"
 extern MotorDriver motorDriver;
+
+/* 
+ * Note that the direction of the motors (as in which way is positive) ought to be defined somewhere
+ * like here. In the case of surfacing, uV is hard-coded to be negative as of now. This would imply
+ * that a negative voltage produces an upward movement (which is the case of the propellers facing
+ * upwards would be a clockwise rotation). This means that we probably need to wire the motors
+ * backwards
+*/
 
 class DepthControl : public DataSource
 {
@@ -35,7 +44,8 @@ public:
   float depth_des;   // desired depth
   float depth;       // current depth
   float depth_error; // distance to waypoint
-  float Kp=00.0;     // proportional control gain
+  float Kp=1000.0;    // proportional control gain TODO fine-tune or add I component
+                      // currently very high in order to see second-order oscillations (ideally)
   float uV;          // vertical motor effort
 
   bool diveState = 1;

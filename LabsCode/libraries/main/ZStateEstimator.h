@@ -35,8 +35,11 @@ public:
 
 private:
   // set pressure sensor calibration slope and incercept below
-  const float depthCal_slope = 1;
+  const float depthCal_slope = -1; // Rai wants this to be negative so that increased pressure wrt
+                                   // depth decreases Z (magnitude of negative number increases)
   const float depthCal_intercept = 1;
+
+  // TODO set these values
 
 };
 

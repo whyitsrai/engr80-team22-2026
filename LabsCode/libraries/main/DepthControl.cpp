@@ -23,13 +23,15 @@ void DepthControl::dive(z_state_t * state, int currentTime_in) {
   updatePoint(state->z);
   if (atDepth || currentWayPoint == totalWayPoints) return; // at final depth point
 
-  // Set the value of depth_des, depth, vertical control effort (uV) appropriately for P control
-  // You can access the desired depth from the wayPoints array at the index held in currentWayPoint
-  // You can access the measured depth calculated in ZStateEstimator.cpp using state->z
-  
-  //////////////////////////////////////////////////////////////////////
-  // write code here
-  //////////////////////////////////////////////////////////////////////
+  // compute control effort based on error between current depth and currently desired depth (P-control)
+  depth_des = wayPoints[currentWayPoint];
+  depth = state->z;
+  depth_error = depth_des - depth;
+  uV = depth_error;
+
+  // bound the control effort
+  if (uV < MAX_CONTROL_EFFORT) uV = MAX_CONTROL_EFFORT;
+  else if (uV > -1 * MAX_CONTROL_EFFORT) uV = -1 * MAX_CONTROL_EFFORT;
   
   ///////////////////////////////////////////////////////////////////////
   // don't change code past this point
@@ -52,7 +54,7 @@ void DepthControl::surface(z_state_t * state) {
   }
   else { // not at surface yet
     atSurface = 0;
-    uV = -30; // go upward
+    uV = -30; // go upward TODO fine-tune this value
   }
   printer.printMessage(surfaceMessage,smTime);
 }
@@ -122,7 +124,7 @@ void DepthControl::updatePoint(float z) {
     if (currentWayPoint == totalWayPoints) {
       changingWPMessage = "Got to final depth waypoint. Now surfacing";
       atDepth = 1;
-      uV = 0;
+      uV = 0; // double-check what this variable does
       cwpmTime = 10;
       currentWayPoint = 0;
     }
