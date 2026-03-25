@@ -63,6 +63,7 @@ void setup() {
   logger.include(&adc);
   logger.include(&ef);
   logger.include(&button_sampler);
+
   logger.init();
 
   printer.init();

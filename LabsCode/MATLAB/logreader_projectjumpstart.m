@@ -56,7 +56,11 @@ fclose(fid);
 % depth_des depth depth_error Kp uV diveState surfaceState atDepth atSurface complete totalWayPoints wayPoints
     % this one is strange as there is no associated struct, so the variables themselves need to be changed maybe
 
-% double-check the variables!
+
+%% Header from log.txt file showing available variables
+%rollIMU,pitchIMU,headingIMU,accelX,accelY,accelZ,magX,magY,magZ,lat,lon,nsats,x,y,u,uL,uR,yaw,yaw_des,motorA,motorB,motorC,Current_Sense,A00,A01,A02,A03,A10,A11,A12,A13,ErrorFlagA,ErrorFlagB,ErrorFlagC,Button
+%float,float,float,float,float,float,float,float,float,float,float,uint8,float,float,float,float,float,float,float,int,int,int,int,int,int,int,int,int,int,int,int,bool,bool,bool,bool
+
 
 sample_period = 0.0099; % TODO double-check
 times = 0:sample_period:size(items{1});
