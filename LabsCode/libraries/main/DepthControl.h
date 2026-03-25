@@ -13,8 +13,10 @@ extern MotorDriver motorDriver;
  * Note that the direction of the motors (as in which way is positive) ought to be defined somewhere
  * like here. In the case of surfacing, uV is hard-coded to be negative as of now. This would imply
  * that a negative voltage produces an upward movement (which is the case of the propellers facing
- * upwards would be a clockwise rotation). This means that we probably need to wire the motors
- * backwards
+ * upwards is be a clockwise rotation). This is achieved by wiring the motors + to + and - to -
+ *
+ * As a rule: positive uV causes a downwards movement, negative uV causes a upwards movement
+ * TODO consider changing this after Lab7. Remove these lines if we do so.
 */
 
 class DepthControl : public DataSource
