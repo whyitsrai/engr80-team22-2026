@@ -27,7 +27,7 @@ void DepthControl::dive(z_state_t * state, int currentTime_in) {
   depth_des = wayPoints[currentWayPoint];
   depth = state->z;
   depth_error = depth_des - depth;
-  uV = depth_error;
+  uV = -1 * depth_error; // factor of -1 is due to negative control effort creating upwards motion
 
   // bound the control effort
   if (uV < MAX_CONTROL_EFFORT) uV = MAX_CONTROL_EFFORT;
