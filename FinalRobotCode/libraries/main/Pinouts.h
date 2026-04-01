@@ -39,6 +39,12 @@
 #define MIC_PIN 23
 
 // Depth Control
-#define PRESSURE_PIN 16 // Teensy pin A00. Set to 14 for our design 16 for default
+#define PRESSURE_PIN 15 // A1
+
+// Temperature
+#define TEMPERATURE_PIN 14 // A0
+
+// I2C Bus Number
+#define I2CBUS Wire1 // Pins A2 for SCL1 and A3 for SDA1
 
 #endif

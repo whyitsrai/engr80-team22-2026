@@ -35,11 +35,11 @@ Links to the libraries and dependencies are
 # CLI
 Some useful commands for the ones of us who like to use the cli (for nix-like systems only):
 
-```ls /dev | grep usbmodem```
+- For finding the Teensy Serial Port Name: `ls /dev | grep tty.usbmodem`
 
-```arduino-cli compile --libraries=libraries --fqbn teensy:avr:teensy40 "path-to-file.ino"```
+- For compiling the arduino code: `arduino-cli compile --libraries=libraries --fqbn teensy:avr:teensy40 "path-to-file.ino"`
 
-```arduino-cli upload -p /dev/tty.usbmodem"number" "arduino project name without .ino" --fqbn teensy:avr:teensy40```
+- For uploading the arduino code: `arduino-cli upload -p /dev/tty.usbmodem"number" "arduino project name without .ino" --fqbn teensy:avr:teensy40`
 
-```matlab -nodesktop -r "run('matlabfile.m')"```
+- Running MATLAB in headless mode: `matlab -nodesktop -r "run('matlabfile.m')"`
 

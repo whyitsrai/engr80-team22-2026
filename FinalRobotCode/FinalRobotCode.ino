@@ -8,7 +8,6 @@ Default Code Authors:
 This Iteration's Authors:
     Rai Wandeler (rwandeler@hmc.edu) '28 (contributed in 2026)
 */
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <avr/io.h>
@@ -19,13 +18,15 @@ This Iteration's Authors:
 #include <SensorGPS.h>
 #include <SensorIMU.h>
 #include <XYStateEstimator.h>
+#include <ZStateEstimator.h>
 #include <ADCSampler.h>
 #include <ErrorFlagSampler.h>
 #include <ButtonSampler.h> // A template of a data source library
 #include <MotorDriver.h>
 #include <Logger.h>
 #include <Printer.h>
-#include <SurfaceControl.h>
+//#include <SurfaceControl.h>
+#include <DepthControl.h>
 #define UartSerial Serial1
 #define DELAY 0
 #include <GPSLockLED.h>
@@ -35,8 +36,10 @@ This Iteration's Authors:
 /////////////////////////* Global Variables *////////////////////////
 
 MotorDriver motor_driver;
-XYStateEstimator state_estimator;
-SurfaceControl surface_control;
+XYStateEstimator xy_state_estimator;
+ZStateEstimator z_state_estimator;
+//SurfaceControl surface_control;
+DepthControl depth_control;
 SensorGPS gps;
 Adafruit_GPS GPS(&UartSerial);
 ADCSampler adc;
@@ -62,25 +65,27 @@ double waypoints [] = { 0, 10, 0, 0 };   // listed as x0,y0,x1,y1, ... etc.
 
 // Color Sensor Channels
 uint16_t sensorValues[AS726x_NUM_CHANNELS];
+String print_as7262_status(uint16_t* as7262Values);
 
 ////////////////////////* Setup *////////////////////////////////
 
 void setup() {
-  
+  pinMode(14, INPUT); // A0, will code on later
+  pinMode(15, INPUT); // A1, will code on later
   logger.include(&imu);
-  logger.include(&gps);
-  logger.include(&state_estimator);
-  logger.include(&surface_control);
+  //logger.include(&gps);
+  //logger.include(&surface_control);
+  logger.include(&depth_control);
   logger.include(&motor_driver);
   logger.include(&adc);
   logger.include(&ef);
   logger.include(&button_sampler);
-  logger.include((int) &sensorValues[AS726x_VIOLET]); // there is some type BS to debug here
-  logger.include((int) &sensorValues[AS726x_BLUE]);
-  logger.include((int) &sensorValues[AS726x_GREEN]);
-  logger.include((int) &sensorValues[AS726x_YELLOW]);
-  logger.include((int) &sensorValues[AS726x_ORANGE]);
-  logger.include((int) &sensorValues[AS726x_RED]);
+//  logger.include((int) &sensorValues[AS726x_VIOLET]); // there is some type BS to debug here
+//  logger.include((int) &sensorValues[AS726x_BLUE]);
+//  logger.include((int) &sensorValues[AS726x_GREEN]);
+//  logger.include((int) &sensorValues[AS726x_YELLOW]);
+//  logger.include((int) &sensorValues[AS726x_ORANGE]);
+//  logger.include((int) &sensorValues[AS726x_RED]);
   logger.init();
   burst_adc.init();
   
@@ -94,14 +99,24 @@ void setup() {
   motor_driver.init();
   led.init();
 
-  if(!ams.begin()){
-    printer.printMessage("could not connect to color sensor!", 0);
-    while(1);
+  while(!ams.begin(&Wire1)){
+    //printer.print("could not connect to color sensor!", 0);
+    Serial.println("waiting for AMS begin");
+    delay(100);
   }
-
-  surface_control.init(number_of_waypoints, waypoints, DELAY);
   
-  state_estimator.init(); 
+  int diveDelay = 10000; // how long robot will stay at depth waypoint before continuing (ms)
+
+  const int num_depth_waypoints = 4;
+  double depth_waypoints [] = { 0.5, 1 };  // listed as z0,z1,... etc.
+  //double depth_waypoints [] = { 1.4, 1.0, 0.5, 0.8 };  // listed as z0,z1,... etc.
+  depth_control.init(num_depth_waypoints, depth_waypoints, diveDelay);
+
+
+  //surface_control.init(number_of_waypoints, waypoints, DELAY);
+  
+  xy_state_estimator.init(); 
+  z_state_estimator.init();
 
   printer.printMessage("Starting main loop",10);
   loopStartTime = millis();
@@ -111,8 +126,9 @@ void setup() {
   adc.lastExecutionTime             = loopStartTime - LOOP_PERIOD + ADC_LOOP_OFFSET;
   ef.lastExecutionTime              = loopStartTime - LOOP_PERIOD + ERROR_FLAG_LOOP_OFFSET;
   button_sampler.lastExecutionTime  = loopStartTime - LOOP_PERIOD + BUTTON_LOOP_OFFSET;
-  state_estimator.lastExecutionTime = loopStartTime - LOOP_PERIOD + XY_STATE_ESTIMATOR_LOOP_OFFSET;
-  surface_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + SURFACE_CONTROL_LOOP_OFFSET;
+  //state_estimator.lastExecutionTime = loopStartTime - LOOP_PERIOD + XY_STATE_ESTIMATOR_LOOP_OFFSET;
+  //surface_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + SURFACE_CONTROL_LOOP_OFFSET;
+  depth_control.lastExecutionTime      = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   logger.lastExecutionTime          = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
   burst_adc.lastExecutionTime       = loopStartTime;
 }
@@ -130,20 +146,17 @@ void loop() {
     printer.printValue(1,ef.printStates());
     printer.printValue(2,logger.printState());
     printer.printValue(3,gps.printState());   
-    printer.printValue(4,state_estimator.printState());     
-    printer.printValue(5,surface_control.printWaypointUpdate());
-    printer.printValue(6,surface_control.printString());
+    printer.printValue(4,xy_state_estimator.printState());  
+    printer.printValue(5,z_state_estimator.printState());  
+    printer.printValue(6, print_as7262_status(sensorValues)); // Color Information
     printer.printValue(7,motor_driver.printState());
     printer.printValue(8,imu.printRollPitchHeading());        
     printer.printValue(9,imu.printAccels());
+    printer.printValue(10,String(analogRead(14)));
+    printer.printValue(11,String(analogRead(15)));
     printer.printToSerial();  // To stop printing, just comment this line out
   }
 
-  if ( currentTime-surface_control.lastExecutionTime > LOOP_PERIOD ) {
-    surface_control.lastExecutionTime = currentTime;
-    surface_control.navigate(&state_estimator.state, &gps.state, DELAY);
-    motor_driver.drive(surface_control.uL,surface_control.uR,0);
-  }
 
   if ( currentTime-adc.lastExecutionTime > LOOP_PERIOD ) {
     adc.lastExecutionTime = currentTime;
@@ -178,11 +191,6 @@ void loop() {
  
   gps.read(&GPS); // blocking UART calls, need to check for UART every cycle
 
-  if ( currentTime-state_estimator.lastExecutionTime > LOOP_PERIOD ) {
-    state_estimator.lastExecutionTime = currentTime;
-    state_estimator.updateState(&imu.state, &gps.state);
-  }
-  
   if ( currentTime-led.lastExecutionTime > LOOP_PERIOD ) {
     led.lastExecutionTime = currentTime;
     led.flashLED(&gps.state);
@@ -194,7 +202,7 @@ void loop() {
   }
 
   // Log current colors
-  if (ams.dataReady()) {
+  if (ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
     ams.readRawValues(sensorValues);
     ams.startMeasurement();
   }
@@ -211,4 +219,27 @@ void EFB_Detected(void){
 
 void EFC_Detected(void){
   EF_States[2] = 0;
+}
+
+String print_as7262_status(uint16_t* as7262Values) {
+  String status = "";
+  status += "Violet: ";
+  status += String(as7262Values[AS726x_VIOLET]);
+  status += "   ";
+  status += "Blue: ";
+  status += String(as7262Values[AS726x_BLUE]);
+  status += "   ";
+  status += "Green: ";
+  status += String(as7262Values[AS726x_GREEN]);
+  status += "   ";
+  status += "Yellow: ";
+  status += String(as7262Values[AS726x_YELLOW]);
+  status += "   ";
+  status += "Orange: ";
+  status += String(as7262Values[AS726x_ORANGE]);
+  status += "   ";
+  status += "Red: ";
+  status += String(as7262Values[AS726x_RED]);
+  status += "   ";
+  return status;
 }
