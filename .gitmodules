@@ -1,0 +1,15 @@
+[submodule "FinalRobotCode/libraries/SD"]
+	path = FinalRobotCode/libraries/SD
+	url = https://github.com/arduino-libraries/SD.git
+[submodule "FinalRobotCode/libraries/LSM303AGR"]
+	path = FinalRobotCode/libraries/LSM303AGR
+	url = https://github.com/stm32duino/LSM303AGR.git
+[submodule "FinalRobotCode/libraries/Adafruit_GPS"]
+	path = FinalRobotCode/libraries/Adafruit_GPS
+	url = https://github.com/adafruit/Adafruit_GPS.git
+[submodule "FinalRobotCode/libraries/Adafruit_AS726x"]
+	path = FinalRobotCode/libraries/Adafruit_AS726x
+	url = https://github.com/adafruit/Adafruit_AS726x
+[submodule "FinalRobotCode/libraries/Adafruit_BusIO"]
+	path = FinalRobotCode/libraries/Adafruit_BusIO
+	url = https://github.com/adafruit/Adafruit_BusIO

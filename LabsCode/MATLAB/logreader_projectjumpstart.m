@@ -4,7 +4,7 @@
 clear;
 clf;
 
-filenum = '000'; % file number for the data you want to read
+filenum = '060'; % file number for the data you want to read
 infofile = strcat('INF', filenum, '.TXT');
 datafile = strcat('LOG', filenum, '.BIN');
 
@@ -61,9 +61,14 @@ fclose(fid);
 % rollIMU,pitchIMU,headingIMU,accelX,accelY,accelZ,magX,magY,magZ,lat,lon,nsats,x,y,z,uV,depth,depth_des,motorA,motorB,motorC,Current_Sense,A00,A01,A02,A03,A10,A11,A12,A13,ErrorFlagA,ErrorFlagB,ErrorFlagC,Button
 %float,float,float,float,float,float,float,float,float,float,float,uint8,float,float,float,float,float,float,int,int,int,int,int,int,int,int,int,int,int,int,bool,bool,bool,bool
 
+num_samples = size(depth);
+num_samples = num_samples(1);
+sample_period = 0.099;
+times = 1:num_samples;
+times = times .* sample_period;
 
-sample_period = 0.0099; % TODO double-check
-times = 0:sample_period:size(items{1});
+disp(size(times));
+disp(size(depth));
 
 ctrl_eff = uV ./ 255 .* 100; % convert to percentage
 
