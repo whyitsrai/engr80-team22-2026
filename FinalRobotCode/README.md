@@ -18,8 +18,8 @@ code has fewer merge conflicts. Let's avoid doing so for now though.
 - [Teensy 4.0 Pinout](https://github.com/KurtE/TeensyDocuments/blob/master/Teensy4%20Pins.pdf)
 
 # Libraries
-Custom E80 library files are included in the [main folder](./main/). Documentation for the default
-library are in the [library README file](./main/README.md).
+Custom E80 library files are included in the [main folder](./libraries/main/). Documentation for the default
+library are in the [library README file](./libraries/main/README.md).
 
 -----
 
