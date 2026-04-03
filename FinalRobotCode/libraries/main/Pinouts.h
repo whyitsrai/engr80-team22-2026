@@ -39,12 +39,13 @@
 #define MIC_PIN 23
 
 // Depth Control
-#define PRESSURE_PIN 15 // A1
+#define PRESSURE_PIN 24 // A1
 
 // Temperature
-#define TEMPERATURE_PIN 14 // A0
+#define THERMOCOUPLE_PIN 14 // A0
+#define THERMISTOR_PIN 15 // A1
 
 // I2C Bus Number
-#define I2CBUS Wire1 // Pins A2 for SCL1 and A3 for SDA1
+#define AS726X_BUS Wire1 // Pins A2 for SCL1 and A3 for SDA1
 
 #endif

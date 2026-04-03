@@ -70,10 +70,12 @@ String print_as7262_status(uint16_t* as7262Values);
 ////////////////////////* Setup *////////////////////////////////
 
 void setup() {
-  pinMode(14, INPUT); // A0, will code on later
-  pinMode(15, INPUT); // A1, will code on later
-  Wire1.begin(); // ensure that i2c is in a known state
-  Wire1.setClock(100000);
+  pinMode(THERMOCOUPLE_PIN, INPUT);
+  pinMode(THERMISTOR_PIN, INPUT);
+  pinMode(PRESSURE_PIN, INPUT);
+
+  AS726X_BUS.begin(); // ensure that i2c is in a known state
+  AS726X_BUS.setClock(100000);
 
   logger.include(&imu);
   //logger.include(&gps);
@@ -102,7 +104,7 @@ void setup() {
   motor_driver.init();
   led.init();
 
-  while(!ams.begin(&Wire1)){
+  while(!ams.begin(&AS726X_BUS)){
     //printer.print("could not connect to color sensor!", 0);
     Serial.println("waiting for AMS begin");
     delay(100);
@@ -155,8 +157,8 @@ void loop() {
     printer.printValue(7,motor_driver.printState());
     printer.printValue(8,imu.printRollPitchHeading());        
     printer.printValue(9,imu.printAccels());
-    printer.printValue(10,String(analogRead(14)));
-    printer.printValue(11,String(analogRead(15)));
+    printer.printValue(10,print_temperature_status(analogRead(THERMISTOR_PIN), analogRead(THERMOCOUPLE_PIN)));
+    printer.printValue(11,print_pressure_status(analogRead(PRESSURE_PIN))); // TODO change pin
     printer.printToSerial();  // To stop printing, just comment this line out
   }
 
@@ -242,5 +244,23 @@ String print_as7262_status(uint16_t* as7262Values) {
   status += "Red: ";
   status += String(as7262Values[AS726x_RED]);
   status += "   ";
+  return status;
+}
+
+String print_temperature_status(int thermistor, int thermocouple) {
+  String status = "";
+  status += "Thermocouple Value: ";
+  status += String(thermocouple);
+  status += "/1023   ";
+  status += "Thermistor Value: ";
+  status += String(thermistor);
+  status += "/1023";
+  return status;
+}
+String print_pressure_status(int pressure) {
+  String status = "";
+  status += "Pressure Value: ";
+  status += String(pressure);
+  status += "/1023   ";
   return status;
 }
