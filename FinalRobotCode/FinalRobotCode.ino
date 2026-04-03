@@ -72,6 +72,9 @@ String print_as7262_status(uint16_t* as7262Values);
 void setup() {
   pinMode(14, INPUT); // A0, will code on later
   pinMode(15, INPUT); // A1, will code on later
+  Wire1.begin(); // ensure that i2c is in a known state
+  Wire1.setClock(100000);
+
   logger.include(&imu);
   //logger.include(&gps);
   //logger.include(&surface_control);
@@ -187,6 +190,11 @@ void loop() {
   if ( currentTime-imu.lastExecutionTime > LOOP_PERIOD ) {
     imu.lastExecutionTime = currentTime;
     imu.read();     // blocking I2C calls
+    if (ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
+  // Log current colors
+      ams.readRawValues(sensorValues); // blocking i2c call
+      ams.startMeasurement();
+    }
   }
  
   gps.read(&GPS); // blocking UART calls, need to check for UART every cycle
@@ -200,13 +208,6 @@ void loop() {
     logger.lastExecutionTime = currentTime;
     logger.log();
   }
-
-  // Log current colors
-  if (ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
-    ams.readRawValues(sensorValues);
-    ams.startMeasurement();
-  }
-
 }
 
 void EFA_Detected(void){
