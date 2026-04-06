@@ -7,12 +7,15 @@ Default Code Authors:
     Apoorva Sharma (asharma@hmc.edu) '17 (contributed in 2016)
 This Iteration's Authors:
     Rai Wandeler (rwandeler@hmc.edu) '28 (contributed in 2026)
+    Alejandro Tellez (atellez@g.hmc.edu) '28 (contributed in 2026)
 */
 #include <Arduino.h>
 #include <Wire.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-
+//Adding watchdog timer library to use the watchdog timer later 
+#include <Adafruit_SleepyDog.h>
+//Adding watch 
 #include <Pinouts.h>
 #include <TimingOffsets.h>
 #include <SensorGPS.h>
@@ -74,6 +77,8 @@ void setup() {
   pinMode(THERMISTOR_PIN, INPUT);
   pinMode(PRESSURE_PIN, INPUT);
 
+  Watchdog.enable(5000); //Watchdog timer essentially resets the system. Initiate after 5 sec
+
   AS726X_BUS.begin(); // ensure that i2c is in a known state
   AS726X_BUS.setClock(100000);
 
@@ -104,10 +109,22 @@ void setup() {
   motor_driver.init();
   led.init();
 
-  while(!ams.begin(&AS726X_BUS)){
-    //printer.print("could not connect to color sensor!", 0);
+  //Old loop would run infinitely if something fails, so added changes below:
+  unsigned long amsStart = millis(); //Keeps track of how long the light sensor has been running in ms. i.e. current time
+  bool amsConnected = false; //Initially sets connected status to false to avoid getting false positive and crashing the sensor
+
+  while(millis() - amsStart < 4000) {
+    if (ams.begin((&AS726X_BUS))) {
+      amsConnected = true;
+      Serial.println("Successfully connected to color sensor :)");
+      break;  //tries to connect. if connection sucessful, then breaks loop
+    }
     Serial.println("waiting for AMS begin");
     delay(100);
+  }
+  // checking if sensor never connected in the first place
+  if (!amsConnected) {
+    Serial.println("AMS color sensor failed to connect. Skipping..."); 
   }
   
   int diveDelay = 10000; // how long robot will stay at depth waypoint before continuing (ms)
@@ -136,6 +153,9 @@ void setup() {
   depth_control.lastExecutionTime      = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   logger.lastExecutionTime          = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
   burst_adc.lastExecutionTime       = loopStartTime;
+  //Petting the dog 
+  Watchdog.reset();
+
 }
 
 
@@ -210,6 +230,8 @@ void loop() {
     logger.lastExecutionTime = currentTime;
     logger.log();
   }
+  //"Petting the dog" - Reset the watchdog timer after ensuring everything in the loop is working
+  Watchdog.reset(); 
 }
 
 void EFA_Detected(void){
