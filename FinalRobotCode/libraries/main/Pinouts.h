@@ -39,7 +39,7 @@
 #define MIC_PIN 23
 
 // Depth Control
-#define PRESSURE_PIN 24 // A1
+#define PRESSURE_PIN 24 // A10
 
 // Temperature
 #define THERMOCOUPLE_PIN 14 // A0

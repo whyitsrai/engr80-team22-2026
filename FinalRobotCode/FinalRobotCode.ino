@@ -178,7 +178,7 @@ void loop() {
     printer.printValue(8,imu.printRollPitchHeading());        
     printer.printValue(9,imu.printAccels());
     printer.printValue(10,print_temperature_status(analogRead(THERMISTOR_PIN), analogRead(THERMOCOUPLE_PIN)));
-    printer.printValue(11,print_pressure_status(analogRead(PRESSURE_PIN))); // TODO change pin
+    printer.printValue(11,print_pressure_status(analogRead(PRESSURE_PIN)));
     printer.printToSerial();  // To stop printing, just comment this line out
   }
 
