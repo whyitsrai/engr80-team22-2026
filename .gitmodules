@@ -13,3 +13,6 @@
 [submodule "FinalRobotCode/libraries/Adafruit_BusIO"]
 	path = FinalRobotCode/libraries/Adafruit_BusIO
 	url = https://github.com/adafruit/Adafruit_BusIO
+[submodule "FinalRobotCode/libraries/WDT_T4"]
+	path = FinalRobotCode/libraries/WDT_T4
+	url = https://github.com/tonton81/WDT_T4

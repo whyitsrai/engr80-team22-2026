@@ -97,12 +97,12 @@ void setup() {
   logger.include(&adc);
   logger.include(&ef);
   logger.include(&button_sampler);
-//  logger.include((int) &sensorValues[AS726x_VIOLET]); // there is some type BS to debug here
-//  logger.include((int) &sensorValues[AS726x_BLUE]);
-//  logger.include((int) &sensorValues[AS726x_GREEN]);
-//  logger.include((int) &sensorValues[AS726x_YELLOW]);
-//  logger.include((int) &sensorValues[AS726x_ORANGE]);
-//  logger.include((int) &sensorValues[AS726x_RED]);
+  logger.include((int) &sensorValues[AS726x_VIOLET]); // there is some type BS to debug here
+  logger.include((int) &sensorValues[AS726x_BLUE]);
+  logger.include((int) &sensorValues[AS726x_GREEN]);
+  logger.include((int) &sensorValues[AS726x_YELLOW]);
+  logger.include((int) &sensorValues[AS726x_ORANGE]);
+  logger.include((int) &sensorValues[AS726x_RED]);
   logger.init();
   burst_adc.init();
   
