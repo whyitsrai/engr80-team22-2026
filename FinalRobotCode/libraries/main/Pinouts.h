@@ -15,6 +15,11 @@
 // Motor C: pins 23,22 V
 #define MOTOR_C_DIRECTION 22 //IN1
 #define MOTOR_C_SPEED 23     //IN2
+
+// Motor D: pins 30,32 V2
+#define MOTOR_D_DIRECTION 32 //IN1
+#define MOTOR_D_SPEED 30     //IN2
+
 // **********************************************************
 
 // ************ For Version 2.2 and earlier of the Motherboard

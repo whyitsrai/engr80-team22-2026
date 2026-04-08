@@ -1,11 +1,12 @@
 #ifndef __MOTOR_DRIVER_H__
 #define __MOTOR_DRIVER_H__
 
-#define NUM_MOTORS 3
+#define NUM_MOTORS 4
 
 #define MOTOR_A_INDEX 0
 #define MOTOR_B_INDEX 1
 #define MOTOR_C_INDEX 2
+#define MOTOR_D_INDEX 3
 #define DIRECTION_PIN 0
 #define SPEED_PIN 1
 
@@ -35,7 +36,7 @@ public:
   String printState(void);
 
   // helper function that sets motor command state and then applies it
-  void drive(int motorA_power,int motorB_power,int motorC_power);
+  void drive(int motorA_power,int motorB_power,int motorC_power,int motorD_power);
 
   // Range from -255 to +255 for full reverse or full forward
   int motorValues[NUM_MOTORS];
@@ -47,7 +48,8 @@ private:
   // pins for the motors
   int motorPins[NUM_MOTORS][2] = {{MOTOR_A_DIRECTION,MOTOR_A_SPEED},
                                   {MOTOR_B_DIRECTION,MOTOR_B_SPEED},
-                                  {MOTOR_C_DIRECTION,MOTOR_C_SPEED}};
+                                  {MOTOR_C_DIRECTION,MOTOR_C_SPEED},
+                                  {MOTOR_D_DIRECTION,MOTOR_D_SPEED}};
 
   // pwm data
   unsigned int pwmValues[NUM_MOTORS]; // absolute value
