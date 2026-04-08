@@ -14,7 +14,9 @@ This Iteration's Authors:
 #include <avr/io.h>
 #include <avr/interrupt.h>
 //Adding watchdog timer library to use the watchdog timer later 
-#include <Adafruit_SleepyDog.h>
+//To add this library, go here: https://github.com/tonton81/WDT_T4
+//Then download code as a zip, and add library as a .zip library 
+#include <Watchdog_t4.h>
 //Adding watch 
 #include <Pinouts.h>
 #include <TimingOffsets.h>
@@ -37,6 +39,9 @@ This Iteration's Authors:
 #include <Adafruit_AS726x.h>
 
 /////////////////////////* Global Variables *////////////////////////
+
+//Watchdog variable 
+WDT_T4<WDT1> watchdog;
 
 MotorDriver motor_driver;
 XYStateEstimator xy_state_estimator;
@@ -77,7 +82,9 @@ void setup() {
   pinMode(THERMISTOR_PIN, INPUT);
   pinMode(PRESSURE_PIN, INPUT);
 
-  Watchdog.enable(5000); //Watchdog timer essentially resets the system. Initiate after 5 sec
+  WDT_timings_t config;
+  config.timeout=5; //Setting timer to 5 min 
+  watchdog.begin(config);
 
   AS726X_BUS.begin(); // ensure that i2c is in a known state
   AS726X_BUS.setClock(100000);
@@ -154,8 +161,7 @@ void setup() {
   logger.lastExecutionTime          = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
   burst_adc.lastExecutionTime       = loopStartTime;
   //Petting the dog 
-  Watchdog.reset();
-
+  watchdog.feed();
 }
 
 
@@ -231,7 +237,7 @@ void loop() {
     logger.log();
   }
   //"Petting the dog" - Reset the watchdog timer after ensuring everything in the loop is working
-  Watchdog.reset(); 
+  watchdog.feed(); 
 }
 
 void EFA_Detected(void){
