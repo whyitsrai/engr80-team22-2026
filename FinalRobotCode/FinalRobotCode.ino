@@ -16,7 +16,7 @@ This Iteration's Authors:
 //Adding watchdog timer library to use the watchdog timer later 
 //To add this library, go here: https://github.com/tonton81/WDT_T4
 //Then download code as a zip, and add library as a .zip library 
-#include <Watchdog_t4.h>
+//#include <Watchdog_t4.h>
 //Adding watch 
 #include <Pinouts.h>
 #include <TimingOffsets.h>
@@ -41,7 +41,7 @@ This Iteration's Authors:
 /////////////////////////* Global Variables *////////////////////////
 
 //Watchdog variable 
-WDT_T4<WDT1> watchdog;
+//WDT_T4<WDT1> watchdog;
 
 MotorDriver motor_driver;
 XYStateEstimator xy_state_estimator;
@@ -82,9 +82,9 @@ void setup() {
   pinMode(THERMISTOR_PIN, INPUT);
   pinMode(PRESSURE_PIN, INPUT);
 
-  WDT_timings_t config;
-  config.timeout=5; //Setting timer to 5 min 
-  watchdog.begin(config);
+  //WDT_timings_t config;
+  //config.timeout=100; //Setting timer to 5 min 
+  //watchdog.begin(config);
 
   AS726X_BUS.begin(); // ensure that i2c is in a known state
   AS726X_BUS.setClock(100000);
@@ -97,20 +97,22 @@ void setup() {
   logger.include(&adc);
   logger.include(&ef);
   logger.include(&button_sampler);
-  logger.include((int) &sensorValues[AS726x_VIOLET]); // there is some type BS to debug here
-  logger.include((int) &sensorValues[AS726x_BLUE]);
-  logger.include((int) &sensorValues[AS726x_GREEN]);
-  logger.include((int) &sensorValues[AS726x_YELLOW]);
-  logger.include((int) &sensorValues[AS726x_ORANGE]);
-  logger.include((int) &sensorValues[AS726x_RED]);
+  //logger.include((int) &sensorValues[AS726x_VIOLET]); // there is some type BS to debug here
+  //logger.include((int) &sensorValues[AS726x_BLUE]);
+  //logger.include((int) &sensorValues[AS726x_GREEN]);
+  //logger.include((int) &sensorValues[AS726x_YELLOW]);
+  //logger.include((int) &sensorValues[AS726x_ORANGE]);
+  //logger.include((int) &sensorValues[AS726x_RED]);
   logger.init();
   burst_adc.init();
   
 
   printer.init();
+  Serial.println("Successfully initiated printer :)");
   ef.init();
   button_sampler.init();
   imu.init();
+  Serial.println("Successfully initiated IMU :)");
   UartSerial.begin(9600);
   gps.init(&GPS);
   motor_driver.init();
@@ -161,7 +163,7 @@ void setup() {
   logger.lastExecutionTime          = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
   burst_adc.lastExecutionTime       = loopStartTime;
   //Petting the dog 
-  watchdog.feed();
+  //watchdog.feed();
 }
 
 
@@ -218,11 +220,11 @@ void loop() {
   if ( currentTime-imu.lastExecutionTime > LOOP_PERIOD ) {
     imu.lastExecutionTime = currentTime;
     imu.read();     // blocking I2C calls
-    if (ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
-  // Log current colors
-      ams.readRawValues(sensorValues); // blocking i2c call
-      ams.startMeasurement();
-    }
+    //if (ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
+  //// Log current colors
+    //  ams.readRawValues(sensorValues); // blocking i2c call
+    //  ams.startMeasurement();
+    //}
   }
  
   gps.read(&GPS); // blocking UART calls, need to check for UART every cycle
@@ -237,7 +239,7 @@ void loop() {
     logger.log();
   }
   //"Petting the dog" - Reset the watchdog timer after ensuring everything in the loop is working
-  watchdog.feed(); 
+  //watchdog.feed(); 
 }
 
 void EFA_Detected(void){
