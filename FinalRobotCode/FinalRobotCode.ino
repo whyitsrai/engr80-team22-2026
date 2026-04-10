@@ -72,8 +72,22 @@ const int waypoint_dimensions = 2;       // waypoints are set to have two pieces
 double waypoints [] = { 0, 10, 0, 0 };   // listed as x0,y0,x1,y1, ... etc.
 
 // Color Sensor Channels
-uint16_t sensorValues[AS726x_NUM_CHANNELS];
-String print_as7262_status(uint16_t* as7262Values);
+
+class AS7262Sampler : public DataSource {
+public:
+  AS7262Sampler() : DataSource("AS7262Violet,AS7262Blue,AS7262Green,AS7262Yellow,AS7262Orange,AS7262Red", 
+                               "uint16,uint16,uint16,uint16,uint16,uint16") {}
+  String printState();
+  size_t writeDataBytes(unsigned char * buffer, size_t idx);
+  uint16_t sensorValues[AS726x_NUM_CHANNELS]; // Vio, Blu, Gre, Yel, Ora, Red
+
+//private:
+  //uint16_t sensorValues[AS726x_NUM_CHANNELS]; // Vio, Blu, Gre, Yel, Ora, Red
+  // add interfaces later
+};
+
+AS7262Sampler as7262_sampler;
+bool amsConnected = false; //Initially sets connected status to false to avoid getting false positive and crashing the sensor
 
 ////////////////////////* Setup *////////////////////////////////
 
@@ -83,7 +97,7 @@ void setup() {
   pinMode(PRESSURE_PIN, INPUT);
 
   //WDT_timings_t config;
-  //config.timeout=100; //Setting timer to 5 min 
+  //config.timeout=100; //Setting timeout to 100 seconds
   //watchdog.begin(config);
 
   AS726X_BUS.begin(); // ensure that i2c is in a known state
@@ -97,12 +111,7 @@ void setup() {
   logger.include(&adc);
   logger.include(&ef);
   logger.include(&button_sampler);
-  //logger.include((int) &sensorValues[AS726x_VIOLET]); // there is some type BS to debug here
-  //logger.include((int) &sensorValues[AS726x_BLUE]);
-  //logger.include((int) &sensorValues[AS726x_GREEN]);
-  //logger.include((int) &sensorValues[AS726x_YELLOW]);
-  //logger.include((int) &sensorValues[AS726x_ORANGE]);
-  //logger.include((int) &sensorValues[AS726x_RED]);
+  logger.include(&as7262_sampler); // there is some type BS to debug here
   logger.init();
   burst_adc.init();
   
@@ -118,9 +127,7 @@ void setup() {
   motor_driver.init();
   led.init();
 
-  //Old loop would run infinitely if something fails, so added changes below:
   unsigned long amsStart = millis(); //Keeps track of how long the light sensor has been running in ms. i.e. current time
-  bool amsConnected = false; //Initially sets connected status to false to avoid getting false positive and crashing the sensor
 
   while(millis() - amsStart < 4000) {
     if (ams.begin((&AS726X_BUS))) {
@@ -140,9 +147,7 @@ void setup() {
 
   const int num_depth_waypoints = 4;
   double depth_waypoints [] = { 0.5, 1 };  // listed as z0,z1,... etc.
-  //double depth_waypoints [] = { 1.4, 1.0, 0.5, 0.8 };  // listed as z0,z1,... etc.
   depth_control.init(num_depth_waypoints, depth_waypoints, diveDelay);
-
 
   //surface_control.init(number_of_waypoints, waypoints, DELAY);
   
@@ -181,7 +186,7 @@ void loop() {
     printer.printValue(3,gps.printState());   
     printer.printValue(4,xy_state_estimator.printState());  
     printer.printValue(5,z_state_estimator.printState());  
-    printer.printValue(6, print_as7262_status(sensorValues)); // Color Information
+    printer.printValue(6,as7262_sampler.printState());
     printer.printValue(7,motor_driver.printState());
     printer.printValue(8,imu.printRollPitchHeading());        
     printer.printValue(9,imu.printAccels());
@@ -220,11 +225,11 @@ void loop() {
   if ( currentTime-imu.lastExecutionTime > LOOP_PERIOD ) {
     imu.lastExecutionTime = currentTime;
     imu.read();     // blocking I2C calls
-    //if (ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
-  //// Log current colors
-    //  ams.readRawValues(sensorValues); // blocking i2c call
-    //  ams.startMeasurement();
-    //}
+    if (amsConnected == true && ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
+    // Log current colors
+      ams.readRawValues(as7262_sampler.sensorValues); // blocking i2c call
+      ams.startMeasurement();
+    }
   }
  
   gps.read(&GPS); // blocking UART calls, need to check for UART every cycle
@@ -254,29 +259,6 @@ void EFC_Detected(void){
   EF_States[2] = 0;
 }
 
-String print_as7262_status(uint16_t* as7262Values) {
-  String status = "";
-  status += "Violet: ";
-  status += String(as7262Values[AS726x_VIOLET]);
-  status += "   ";
-  status += "Blue: ";
-  status += String(as7262Values[AS726x_BLUE]);
-  status += "   ";
-  status += "Green: ";
-  status += String(as7262Values[AS726x_GREEN]);
-  status += "   ";
-  status += "Yellow: ";
-  status += String(as7262Values[AS726x_YELLOW]);
-  status += "   ";
-  status += "Orange: ";
-  status += String(as7262Values[AS726x_ORANGE]);
-  status += "   ";
-  status += "Red: ";
-  status += String(as7262Values[AS726x_RED]);
-  status += "   ";
-  return status;
-}
-
 String print_temperature_status(int thermistor, int thermocouple) {
   String status = "";
   status += "Thermocouple Value: ";
@@ -293,4 +275,36 @@ String print_pressure_status(int pressure) {
   status += String(pressure);
   status += "/1023   ";
   return status;
+}
+
+String AS7262Sampler::printState() {
+  String status = "";
+  status += "Violet: ";
+  status += String(sensorValues[AS726x_VIOLET]);
+  status += "  ";
+  status += "Blue: ";
+  status += String(sensorValues[AS726x_BLUE]);
+  status += "  ";
+  status += "Green: ";
+  status += String(sensorValues[AS726x_GREEN]);
+  status += "  ";
+  status += "Yellow: ";
+  status += String(sensorValues[AS726x_YELLOW]);
+  status += "  ";
+  status += "Orange: ";
+  status += String(sensorValues[AS726x_ORANGE]);
+  status += "  ";
+  status += "Red: ";
+  status += String(sensorValues[AS726x_RED]);
+  return status;
+}
+
+size_t AS7262Sampler::writeDataBytes(unsigned char * buffer, size_t idx) {
+  uint16_t * data_slot = (uint16_t *) &buffer[idx];
+
+  for (int i = 0; i < AS726x_NUM_CHANNELS; i++) {
+    data_slot[i] = sensorValues[i];
+  }
+
+  return idx + AS726x_NUM_CHANNELS * sizeof(uint16_t);
 }
