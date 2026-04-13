@@ -50,7 +50,6 @@ void setup() {
   // Ensure 10-bit ADC (default, but explicit is safer)
   analogReadResolution(10);
   analogReadAveraging(32);
-  analogReadAveraging(64);
 
   Serial.println("=== Pressure Sensor Calibration ===");
   Serial.println("Press USER_BUTTON at each known water column height.");
