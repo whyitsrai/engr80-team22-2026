@@ -1,0 +1,12 @@
+MOTORS
+TOP BOARD:
+Red Bundle is Motor 1. Black is GND White is Vcc
+Orange Bundle is Motor 2. Black is GND White/orange is Vcc
+Green Bundle is Motor 3. White/Blue is GND Red is Vcc
+BOTTOM BOARD:
+No Bundle is Motor 1. Orange/Brown is GND Black/Brown is Vcc
+
+SENSORS
+For i2c the red and black wire are 3v3 and GND respectively
+The yellow wire is on the inside (between yellow and red)
+The blue wire is on the outside edge

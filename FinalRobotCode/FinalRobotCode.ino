@@ -32,6 +32,7 @@ This Iteration's Authors:
 #define UartSerial Serial1
 #include <GPSLockLED.h>
 #include <Adafruit_AS726x.h>
+#include <ADCSampler.h>
 
 /////////////////////////* Global Variables *////////////////////////
 
@@ -48,6 +49,7 @@ Adafruit_GPS GPS(&UartSerial);
 ErrorFlagSampler ef;
 SensorIMU imu;
 Logger logger;
+ADCSampler adcvals;
 Printer printer;
 GPSLockLED led;
 Adafruit_AS726x ams;
@@ -65,8 +67,8 @@ volatile bool EF_States[NUM_FLAGS] = { 1, 1, 1 };
 //double waypoints [] = { 0, 10, 0, 0 };   // listed as x0,y0,x1,y1, ... etc.
 
 int diveDelay = 10000; // how long robot will stay at depth waypoint before continuing (ms)
-const int num_depth_waypoints = 3;
-double depth_waypoints [] = { 0.5, 2, 1 };  // listed as z0,z1,... etc.
+const int num_depth_waypoints = 4;
+double depth_waypoints [] = { 0.25, 1, 0.5, 0 };  // listed as z0,z1,... etc.
 
 // Color Sensor Channels
 
@@ -114,6 +116,9 @@ void setup() {
   logger.include(&attitude_control);
   logger.include(&motor_driver);
   logger.include(&ef);
+  logger.include(&imu);
+  logger.include(&imu);
+  logger.include(&adcvals);
   logger.include(&as7262_sampler); // there is some type BS to debug here
   logger.init();
 
@@ -144,8 +149,6 @@ void setup() {
     Serial.println("AMS color sensor failed to connect. Skipping...");
   }
 
-  depth_control.init(num_depth_waypoints, depth_waypoints, diveDelay);
-
   // adc0 for pressure only
   adc.adc0->setAveraging(32);
   adc.adc0->setResolution(12);
@@ -167,16 +170,23 @@ void setup() {
   xy_state_estimator.init();
   z_state_estimator.init();
 
+  Serial.println("Waiting Before Dive");
+  delay(10000);
+  //delay(70000);
+  Serial.println("Initializing Depth Control");
+  depth_control.init(num_depth_waypoints, depth_waypoints, diveDelay);
+
   printer.printMessage("Starting main loop", 10);
   loopStartTime = millis();
   printer.lastExecutionTime = loopStartTime - LOOP_PERIOD + PRINTER_LOOP_OFFSET;
   imu.lastExecutionTime = loopStartTime - LOOP_PERIOD + IMU_LOOP_OFFSET;
   gps.lastExecutionTime = loopStartTime - LOOP_PERIOD + GPS_LOOP_OFFSET;
   ef.lastExecutionTime = loopStartTime - LOOP_PERIOD + ERROR_FLAG_LOOP_OFFSET;
+  adcvals.lastExecutionTime                = loopStartTime - LOOP_PERIOD + ADC_LOOP_OFFSET;
   //state_estimator.lastExecutionTime = loopStartTime - LOOP_PERIOD + XY_STATE_ESTIMATOR_LOOP_OFFSET;
   //surface_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + SURFACE_CONTROL_LOOP_OFFSET;
-  attitude_control.init(0.0f);
-  attitude_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
+  //attitude_control.init(0.0f);
+  //attitude_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   depth_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   logger.lastExecutionTime = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
   //Petting the dog
@@ -204,14 +214,14 @@ void loop() {
     printer.printValue(8,imu.printRollPitchHeading());        
     printer.printValue(9,imu.printAccels());
     //printer.printValue(10,print_temperature_status(temperatureBuf[0], adc.adc1->analogRead(THERMOCOUPLE_PIN)));
-    printer.printValue(10,print_temperature_status(adc.adc1->analogRead(THERMISTOR_PIN), adc.adc1->analogRead(THERMOCOUPLE_PIN)));
+    printer.printValue(10,print_temperature_status(adc.adc1->analogReadContinuous(), 0));
     //printer.printValue(11,print_pressure_status(pressureBuf[0]));
     //printer.printValue(11,print_pressure_status(adc.adc0->analogRead(PRESSURE_PIN)));
     printer.printValue(11,print_pressure_status(filteredPressure));
     printer.printToSerial();  // To stop printing, just comment this line out
   }
 
-    /* ROBOT CONTROL Finite State Machine Taken from dive code */
+  /* ROBOT CONTROL Finite State Machine Taken from dive code */
   if ( currentTime-depth_control.lastExecutionTime > LOOP_PERIOD ) {
     depth_control.lastExecutionTime = currentTime;
     if ( depth_control.diveState ) {      // DIVE STATE //
@@ -225,7 +235,7 @@ void loop() {
       }
       motor_driver.drive(0,0,depth_control.uV,depth_control.uV);
     }
-    if ( depth_control.surfaceState ) {     // SURFACE STATE //
+    else if ( depth_control.surfaceState ) {     // SURFACE STATE //
       if ( !depth_control.atSurface ) { 
         depth_control.surface(&z_state_estimator.state);
       }
@@ -235,6 +245,27 @@ void loop() {
       motor_driver.drive(0,0,depth_control.uV,depth_control.uV);
     }
   }
+
+//  int courseStartTime = 10000; // delay before running program
+//  int holdTime = 1000; // how long to hold at the surface before diving down
+//  int diveTime = 3000; // how long do we dive down for before we traverse
+//  int traverseTime = 5000; // how long do we traverse for before we surface
+//  int surfaceTime = 15000; // how long do we surface for before cutting off our motors
+//  int courseMotorPowerMag = 60; // what absolute amount of power to spin the motor to
+//
+//  if (currentTime < courseStartTime) {
+//  } else if (currentTime < courseStartTime + holdTime) {
+//    motor_driver.drive(0,0,courseMotorPowerMag,courseMotorPowerMag);
+//  } else if (currentTime < courseStartTime + holdTime + diveTime) {
+//    motor_driver.drive(0,0,-courseMotorPowerMag,-courseMotorPowerMag);
+//  } else if (currentTime < courseStartTime + holdTime + diveTime + traverseTime) {
+//    motor_driver.drive(courseMotorPowerMag,courseMotorPowerMag,0,0);
+//  } else if (currentTime < courseStartTime + holdTime + diveTime + traverseTime + surfaceTime) {
+//    motor_driver.drive(0,0,courseMotorPowerMag,courseMotorPowerMag);
+//  } else if (currentTime < courseStartTime + holdTime + diveTime) {
+//  } else {
+//    motor_driver.drive(0,0,0,0);
+//  }
 
 
   if (currentTime - ef.lastExecutionTime > LOOP_PERIOD) {
@@ -262,26 +293,6 @@ void loop() {
     }
   }
 
-  if (currentTime - depth_control.lastExecutionTime > LOOP_PERIOD) {
-    depth_control.lastExecutionTime = currentTime;
-
-    // Convert raw Teensy ADC reading to depth [m] and update z_state_estimator
-    z_state_estimator.updateState(analogRead(PRESSURE_PIN));
-
-    // Outer loop: depth -> uV
-    if (!depth_control.atDepth) {
-      depth_control.dive(&z_state_estimator.state, currentTime);
-    } else {
-      depth_control.surface(&z_state_estimator.state);
-    }
-
-    // Inner loop: pitch -> split uV across front/rear verticals
-    int motorC_cmd, motorD_cmd;
-    attitude_control.computeMotorCommands(&imu.state,depth_control.uV,&motorC_cmd,&motorD_cmd);
-
-    // A, B are horizontal thrusters - zero for a pure dive mission
-    motor_driver.drive(0, 0, motorC_cmd, motorD_cmd);
-  }
   gps.read(&GPS);  // blocking UART calls, need to check for UART every cycle
 
   if (currentTime - led.lastExecutionTime > LOOP_PERIOD) {
@@ -299,7 +310,13 @@ void loop() {
     z_state_estimator.updateState(filteredPressure);
   }
 
-  updatePressure(adc.adc0->analogRead(PRESSURE_PIN));
+  if ( currentTime-adcvals.lastExecutionTime > LOOP_PERIOD ) {
+    adcvals.lastExecutionTime = currentTime;
+    adcvals.updateSample(); 
+  }
+
+
+  updatePressure(adc.adc0->analogReadContinuous());
   //watchdog.feed();
 }
 

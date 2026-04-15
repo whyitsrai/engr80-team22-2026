@@ -1,11 +1,11 @@
 #ifndef __DEPTHCONTROL_H__
 #define __DEPTHCONTROL_H__
 
-#define DEPTH_MARGIN 0.20 // depth margin in meters
+#define DEPTH_MARGIN 0.05 // depth margin in meters
 // Noise budget: raw ADC noise ≈ 40 TU pk-pk → ±0.76 m unfiltered.
 // ZStateEstimator applies N=16 moving average → filtered noise ≈ ±0.19 m.
 // DEPTH_MARGIN must exceed the filtered half-amplitude; 0.20 m provides minimal margin.
-#define MAX_CONTROL_EFFORT 240
+#define MAX_CONTROL_EFFORT 120
 
 #include <Arduino.h>
 #include "MotorDriver.h"
@@ -49,7 +49,7 @@ public:
   float depth_des;   // desired depth
   float depth;       // current depth
   float depth_error; // distance to waypoint
-  float Kp=1000.0;    // proportional control gain TODO fine-tune or add I component
+  float Kp=500.0;    // proportional control gain TODO fine-tune or add I component
                       // currently very high in order to see second-order oscillations (ideally)
   float uV;          // vertical motor effort
 
