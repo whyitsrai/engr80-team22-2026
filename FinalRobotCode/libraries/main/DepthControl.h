@@ -1,7 +1,10 @@
 #ifndef __DEPTHCONTROL_H__
 #define __DEPTHCONTROL_H__
 
-#define DEPTH_MARGIN 0.05 // depth margin in meters
+#define DEPTH_MARGIN 0.20 // depth margin in meters
+// Noise budget: raw ADC noise ≈ 40 TU pk-pk → ±0.76 m unfiltered.
+// ZStateEstimator applies N=16 moving average → filtered noise ≈ ±0.19 m.
+// DEPTH_MARGIN must exceed the filtered half-amplitude; 0.20 m provides minimal margin.
 #define MAX_CONTROL_EFFORT 240
 
 #include <Arduino.h>

@@ -146,7 +146,7 @@ void setup() {
     Serial.println("AMS color sensor failed to connect. Skipping...");
   }
 
-  const int num_depth_waypoints = 4;
+  const int num_depth_waypoints = 2;
   double depth_waypoints [] = { 0.5, 1 };  // listed as z0,z1,... etc.
   depth_control.init(num_depth_waypoints, depth_waypoints, diveDelay);
 
@@ -237,6 +237,9 @@ void loop() {
 
   if (currentTime - depth_control.lastExecutionTime > LOOP_PERIOD) {
     depth_control.lastExecutionTime = currentTime;
+
+    // Convert raw Teensy ADC reading to depth [m] and update z_state_estimator
+    z_state_estimator.updateState(analogRead(PRESSURE_PIN));
 
     // Outer loop: depth -> uV
     if (!depth_control.atDepth) {

@@ -8,18 +8,29 @@ ZStateEstimator::ZStateEstimator(void)
 {}
 
 void ZStateEstimator::init(void) {
-  state.z = 0;
+  state.z  = 0;
+  bufferIdx  = 0;
+  bufferFull = false;
+  for (int i = 0; i < PRESSURE_FILTER_N; i++) pressureBuffer[i] = 0;
 }
 
 void ZStateEstimator::updateState(int pressure_signal) {
-  // get z (depth)
-  float pressure_voltage = (double)pressure_signal;
-  pressure_voltage *= (3.3/1023);  // convert from Teensy units to Volts TODO update wrt new pressure sensor schematic
-  state.z = depthCal_slope * pressure_voltage + depthCal_intercept; // convert from Volts to depth [m]
+  // --- moving-average filter (N=16) to suppress ADC noise ---
+  pressureBuffer[bufferIdx] = pressure_signal;
+  bufferIdx = (bufferIdx + 1) % PRESSURE_FILTER_N;
+  if (!bufferFull && bufferIdx == 0) bufferFull = true;
 
-  // uncomment the following print statement to calibrate your pressure sensor with the Teensy using the Serial Monitor
-  String calibrationMessage = "Pressure Sensor Voltage: " + String(pressure_voltage);
-  printer.printMessage(calibrationMessage,20);
+  int   count = bufferFull ? PRESSURE_FILTER_N : bufferIdx;
+  long  sum   = 0;
+  for (int i = 0; i < count; i++) sum += pressureBuffer[i];
+  float filtered_signal = (float)sum / (float)count;
+
+  // --- convert filtered TU → voltage → depth [m] ---
+  float pressure_voltage = filtered_signal * (3.3f / 1023.0f);
+  state.z = depthCal_slope * pressure_voltage + depthCal_intercept;
+
+  String calibrationMessage = "Pressure (filtered): " + String(pressure_voltage, 4) + " V  →  z = " + String(state.z, 3) + " m";
+  printer.printMessage(calibrationMessage, 20);
 }
 
 String ZStateEstimator::printState(void) {
