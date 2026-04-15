@@ -31,6 +31,8 @@ Links to the libraries and dependencies are
 - https://github.com/adafruit/Adafruit_AS726x
     - https://github.com/adafruit/Adafruit_BusIO
 - https://github.com/arduino-libraries/SD
+- https://github.com/pedvide/ADC
+- https://github.com/tonton81/WDT_T4
 
 # CLI
 Some useful commands for the ones of us who like to use the cli (for nix-like systems only):

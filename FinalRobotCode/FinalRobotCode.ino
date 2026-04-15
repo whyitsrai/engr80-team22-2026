@@ -13,20 +13,16 @@ This Iteration's Authors:
 #include <Wire.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-//Adding watchdog timer library to use the watchdog timer later
-//To add this library, go here: https://github.com/tonton81/WDT_T4
-//Then download code as a zip, and add library as a .zip library
+#include <ADC.h>
+#include <AnalogBufferDMA.h>
 //#include <Watchdog_t4.h>
-//Adding watch
 #include <Pinouts.h>
 #include <TimingOffsets.h>
 #include <SensorGPS.h>
 #include <SensorIMU.h>
 #include <XYStateEstimator.h>
 #include <ZStateEstimator.h>
-#include <ADCSampler.h>
 #include <ErrorFlagSampler.h>
-#include <ButtonSampler.h>  // A template of a data source library
 #include <MotorDriver.h>
 #include <Logger.h>
 #include <Printer.h>
@@ -34,14 +30,11 @@ This Iteration's Authors:
 #include <DepthControl.h>
 #include <AttitudeControl.h>
 #define UartSerial Serial1
-#define DELAY 0
 #include <GPSLockLED.h>
-#include <BurstADCSampler.h>
 #include <Adafruit_AS726x.h>
 
 /////////////////////////* Global Variables *////////////////////////
 
-//Watchdog variable
 //WDT_T4<WDT1> watchdog;
 
 MotorDriver motor_driver;
@@ -52,15 +45,13 @@ DepthControl depth_control;
 AttitudeControl attitude_control;
 SensorGPS gps;
 Adafruit_GPS GPS(&UartSerial);
-ADCSampler adc;
 ErrorFlagSampler ef;
-ButtonSampler button_sampler;
 SensorIMU imu;
 Logger logger;
 Printer printer;
 GPSLockLED led;
-BurstADCSampler burst_adc;
 Adafruit_AS726x ams;
+ADC adc;
 
 // loop start recorder
 int loopStartTime;
@@ -69,9 +60,13 @@ int current_way_point = 0;
 volatile bool EF_States[NUM_FLAGS] = { 1, 1, 1 };
 
 // GPS Waypoints
-const int number_of_waypoints = 2;
-const int waypoint_dimensions = 2;     // waypoints are set to have two pieces of information, x then y.
-double waypoints[] = { 0, 10, 0, 0 };  // listed as x0,y0,x1,y1, ... etc.
+//const int number_of_waypoints = 2;
+//const int waypoint_dimensions = 2;       // waypoints are set to have two pieces of information, x then y.
+//double waypoints [] = { 0, 10, 0, 0 };   // listed as x0,y0,x1,y1, ... etc.
+
+int diveDelay = 10000; // how long robot will stay at depth waypoint before continuing (ms)
+const int num_depth_waypoints = 3;
+double depth_waypoints [] = { 0.5, 2, 1 };  // listed as z0,z1,... etc.
 
 // Color Sensor Channels
 
@@ -91,13 +86,20 @@ public:
 AS7262Sampler as7262_sampler;
 bool amsConnected = false; //Initially sets connected status to false to avoid getting false positive and crashing the sensor
 
+
+// TODO currently not using DMA. Either remove or fix
+DMAMEM static uint16_t pressureBuf[2]; // For Direct Memory Access
+DMAMEM static uint16_t temperatureBuf[2];
+
+AnalogBufferDMA dmaPressure(pressureBuf, 1);
+AnalogBufferDMA dmaTemperature(temperatureBuf, 1);
+
+float filteredPressure = 0;
+const float alpha = 0.05;
+
 ////////////////////////* Setup *////////////////////////////////
 
 void setup() {
-  pinMode(THERMOCOUPLE_PIN, INPUT);
-  pinMode(THERMISTOR_PIN, INPUT);
-  pinMode(PRESSURE_PIN, INPUT);
-
   //WDT_timings_t config;
   //config.timeout=100; //Setting timeout to 100 seconds
   //watchdog.begin(config);
@@ -111,18 +113,14 @@ void setup() {
   logger.include(&depth_control);
   logger.include(&attitude_control);
   logger.include(&motor_driver);
-  logger.include(&adc);
   logger.include(&ef);
-  logger.include(&button_sampler);
   logger.include(&as7262_sampler); // there is some type BS to debug here
   logger.init();
-  burst_adc.init();
 
 
   printer.init();
   Serial.println("Successfully initiated printer :)");
   ef.init();
-  button_sampler.init();
   imu.init();
   Serial.println("Successfully initiated IMU :)");
   UartSerial.begin(9600);
@@ -132,23 +130,37 @@ void setup() {
 
   unsigned long amsStart = millis(); //Keeps track of how long the light sensor has been running in ms. i.e. current time
 
-  while (millis() - amsStart < 4000) {
+  while (millis() - amsStart < 2000) {
     if (ams.begin((&AS726X_BUS))) {
       amsConnected = true;
       Serial.println("Successfully connected to color sensor :)");
       break;  //tries to connect. if connection sucessful, then breaks loop
     }
     Serial.println("waiting for AMS begin");
-    delay(100);
+    delay(1000); // blocking
   }
   // checking if sensor never connected in the first place
   if (!amsConnected) {
     Serial.println("AMS color sensor failed to connect. Skipping...");
   }
 
-  const int num_depth_waypoints = 2;
-  double depth_waypoints [] = { 0.5, 1 };  // listed as z0,z1,... etc.
   depth_control.init(num_depth_waypoints, depth_waypoints, diveDelay);
+
+  // adc0 for pressure only
+  adc.adc0->setAveraging(32);
+  adc.adc0->setResolution(12);
+  adc.adc0->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_LOW_SPEED);
+  adc.adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
+  adc.adc0->startContinuous(PRESSURE_PIN);
+  //dmaPressure.init(&adc, ADC_0);
+
+  // adc1 for temperature and cold junction if needed
+  adc.adc1->setAveraging(16);
+  adc.adc1->setResolution(12);
+  adc.adc1->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_LOW_SPEED);
+  adc.adc1->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
+  adc.adc1->startContinuous(THERMISTOR_PIN);
+  //dmaTemperature.init(&adc, ADC_1);
 
   //surface_control.init(number_of_waypoints, waypoints, DELAY);
 
@@ -160,16 +172,13 @@ void setup() {
   printer.lastExecutionTime = loopStartTime - LOOP_PERIOD + PRINTER_LOOP_OFFSET;
   imu.lastExecutionTime = loopStartTime - LOOP_PERIOD + IMU_LOOP_OFFSET;
   gps.lastExecutionTime = loopStartTime - LOOP_PERIOD + GPS_LOOP_OFFSET;
-  adc.lastExecutionTime = loopStartTime - LOOP_PERIOD + ADC_LOOP_OFFSET;
   ef.lastExecutionTime = loopStartTime - LOOP_PERIOD + ERROR_FLAG_LOOP_OFFSET;
-  button_sampler.lastExecutionTime = loopStartTime - LOOP_PERIOD + BUTTON_LOOP_OFFSET;
   //state_estimator.lastExecutionTime = loopStartTime - LOOP_PERIOD + XY_STATE_ESTIMATOR_LOOP_OFFSET;
   //surface_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + SURFACE_CONTROL_LOOP_OFFSET;
   attitude_control.init(0.0f);
   attitude_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   depth_control.lastExecutionTime = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   logger.lastExecutionTime = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
-  burst_adc.lastExecutionTime = loopStartTime;
   //Petting the dog
   //watchdog.feed();
 }
@@ -183,33 +192,57 @@ void loop() {
 
   if (currentTime - printer.lastExecutionTime > LOOP_PERIOD) {
     printer.lastExecutionTime = currentTime;
-    printer.printValue(0,adc.printSample());
+    printer.printValue(0,depth_control.printString());
     printer.printValue(1,ef.printStates());
     printer.printValue(2,logger.printState());
     printer.printValue(3,gps.printState());   
-    printer.printValue(4,xy_state_estimator.printState());  
-    printer.printValue(5,z_state_estimator.printState());  
+    printer.printValue(4,depth_control.printWaypointUpdate());
+    printer.printValue(5,depth_control.printString());
+    //printer.printValue(5,z_state_estimator.printState());  
     printer.printValue(6,as7262_sampler.printState());
     printer.printValue(7,motor_driver.printState());
     printer.printValue(8,imu.printRollPitchHeading());        
     printer.printValue(9,imu.printAccels());
-    printer.printValue(10,print_temperature_status(analogRead(THERMISTOR_PIN), analogRead(THERMOCOUPLE_PIN)));
-    printer.printValue(11,print_pressure_status(analogRead(PRESSURE_PIN)));
+    //printer.printValue(10,print_temperature_status(temperatureBuf[0], adc.adc1->analogRead(THERMOCOUPLE_PIN)));
+    printer.printValue(10,print_temperature_status(adc.adc1->analogRead(THERMISTOR_PIN), adc.adc1->analogRead(THERMOCOUPLE_PIN)));
+    //printer.printValue(11,print_pressure_status(pressureBuf[0]));
+    //printer.printValue(11,print_pressure_status(adc.adc0->analogRead(PRESSURE_PIN)));
+    printer.printValue(11,print_pressure_status(filteredPressure));
     printer.printToSerial();  // To stop printing, just comment this line out
   }
 
-
-  if (currentTime - adc.lastExecutionTime > LOOP_PERIOD) {
-    adc.lastExecutionTime = currentTime;
-    adc.updateSample();
+    /* ROBOT CONTROL Finite State Machine Taken from dive code */
+  if ( currentTime-depth_control.lastExecutionTime > LOOP_PERIOD ) {
+    depth_control.lastExecutionTime = currentTime;
+    if ( depth_control.diveState ) {      // DIVE STATE //
+      depth_control.complete = false;
+      if ( !depth_control.atDepth ) {
+        depth_control.dive(&z_state_estimator.state, currentTime);
+      }
+      else {
+        depth_control.diveState = false; 
+        depth_control.surfaceState = true;
+      }
+      motor_driver.drive(0,0,depth_control.uV,depth_control.uV);
+    }
+    if ( depth_control.surfaceState ) {     // SURFACE STATE //
+      if ( !depth_control.atSurface ) { 
+        depth_control.surface(&z_state_estimator.state);
+      }
+      else if ( depth_control.complete ) { 
+        delete[] depth_control.wayPoints;   // destroy depth waypoint array from the Heap
+      }
+      motor_driver.drive(0,0,depth_control.uV,depth_control.uV);
+    }
   }
+
 
   if (currentTime - ef.lastExecutionTime > LOOP_PERIOD) {
     ef.lastExecutionTime = currentTime;
     attachInterrupt(digitalPinToInterrupt(ERROR_FLAG_A), EFA_Detected, LOW);
     attachInterrupt(digitalPinToInterrupt(ERROR_FLAG_B), EFB_Detected, LOW);
     attachInterrupt(digitalPinToInterrupt(ERROR_FLAG_C), EFC_Detected, LOW);
-    delay(5);
+    //delay(5); // no idea why this is here
     detachInterrupt(digitalPinToInterrupt(ERROR_FLAG_A));
     detachInterrupt(digitalPinToInterrupt(ERROR_FLAG_B));
     detachInterrupt(digitalPinToInterrupt(ERROR_FLAG_C));
@@ -219,19 +252,13 @@ void loop() {
     EF_States[2] = 1;
   }
 
-  // uses the ButtonSampler library to read a button -- use this as a template for new libraries!
-  if (currentTime - button_sampler.lastExecutionTime > LOOP_PERIOD) {
-    button_sampler.lastExecutionTime = currentTime;
-    button_sampler.updateState();
-  }
-
   if (currentTime - imu.lastExecutionTime > LOOP_PERIOD) {
     imu.lastExecutionTime = currentTime;
     imu.read();     // blocking I2C calls
     if (amsConnected == true && ams.dataReady()) { // add the logger stuff and make sure that this does not run too often
     // Log current colors
       ams.readRawValues(as7262_sampler.sensorValues); // blocking i2c call
-      ams.startMeasurement();
+      ams.startMeasurement(); // blocking
     }
   }
 
@@ -266,9 +293,20 @@ void loop() {
     logger.lastExecutionTime = currentTime;
     logger.log();
   }
-  //"Petting the dog" - Reset the watchdog timer after ensuring everything in the loop is working
+
+  if ( currentTime-z_state_estimator.lastExecutionTime > LOOP_PERIOD ) {
+    z_state_estimator.lastExecutionTime = currentTime;
+    z_state_estimator.updateState(filteredPressure);
+  }
+
+  updatePressure(adc.adc0->analogRead(PRESSURE_PIN));
   //watchdog.feed();
 }
+
+void updatePressure(uint16_t sample) {
+  filteredPressure = filteredPressure * (1.0 - alpha) + sample * alpha;
+}
+
 
 void EFA_Detected(void) {
   EF_States[0] = 0;
@@ -286,17 +324,17 @@ String print_temperature_status(int thermistor, int thermocouple) {
   String status = "";
   status += "Thermocouple Value: ";
   status += String(thermocouple);
-  status += "/1023   ";
+  status += "/4095   ";
   status += "Thermistor Value: ";
   status += String(thermistor);
-  status += "/1023";
+  status += "/4095";
   return status;
 }
 String print_pressure_status(int pressure) {
   String status = "";
   status += "Pressure Value: ";
   status += String(pressure);
-  status += "/1023   ";
+  status += "/4095   ";
   return status;
 }
 
