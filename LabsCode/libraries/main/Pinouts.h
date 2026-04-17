@@ -15,6 +15,11 @@
 // Motor C: pins 23,22 V
 #define MOTOR_C_DIRECTION 22 //IN1
 #define MOTOR_C_SPEED 23     //IN2
+
+// Motor D: pins 28,29 V2
+#define MOTOR_D_DIRECTION 29 //IN1
+#define MOTOR_D_SPEED 28     //IN2
+
 // **********************************************************
 
 // ************ For Version 2.2 and earlier of the Motherboard
@@ -39,6 +44,13 @@
 #define MIC_PIN 23
 
 // Depth Control
-#define PRESSURE_PIN 16 // Teensy pin A00. Set to 14 for our design 16 for default
+#define PRESSURE_PIN 24 // A10
+
+// Temperature
+#define THERMOCOUPLE_PIN 14 // A0
+#define THERMISTOR_PIN 15 // A1
+
+// I2C Bus Number
+#define AS726X_BUS Wire1 // Pins A2 for SCL1 and A3 for SDA1
 
 #endif

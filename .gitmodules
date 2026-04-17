@@ -16,3 +16,6 @@
 [submodule "FinalRobotCode/libraries/WDT_T4"]
 	path = FinalRobotCode/libraries/WDT_T4
 	url = https://github.com/tonton81/WDT_T4
+[submodule "FinalRobotCode/libraries/ADC"]
+	path = FinalRobotCode/libraries/ADC
+	url = https://github.com/pedvide/ADC

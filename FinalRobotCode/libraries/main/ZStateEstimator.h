@@ -34,12 +34,26 @@ public:
   int lastExecutionTime = -1;
 
 private:
-  // set pressure sensor calibration slope and incercept below
-  const float depthCal_slope = 0.8602; // Rai wants this to be negative so that increased pressure wrt
-                                   // depth decreases Z (magnitude of negative number increases)
-  const float depthCal_intercept = -0.9539;
+  // Pressure sensor calibration: depth [m] = slope * V_pressure + intercept
+  // Derived from Team 22 bench calibration (6-point, 0–1 m):
+  //   TU-domain regression: depth = -0.03801 * TU + 32.18   (R² ≈ 1)
+  //   Converting to voltage domain (V = TU * 3.3/1023):
+  //     slope  = -0.03801 * (1023/3.3) = -11.78 m/V
+  //     intercept = 32.18 m
+  // Verification: 0 m → 846 TU / 2.730 V → 0.03 m ✓   1 m → 820 TU / 2.646 V → 1.01 m ✓
+  //const float depthCal_slope     = -11.78f; // m/V  (negative: higher voltage → shallower)
+  //const float depthCal_intercept =  32.18f; // m
+  //
+  // 5AM changes by Rai below. Same calibration numbers but extrapolated for 12-bit numbers
+  const float depthCal_slope = -0.00949;
+  const float depthCal_intercept = 32.18;
 
-  // TODO set these values
+  // Moving-average filter to suppress ADC noise (~40 TU pk-pk → ±0.76 m raw)
+  // N=16 at 99 ms/sample reduces noise to ±0.19 m (adds ~0.8 s lag)
+  //static const int PRESSURE_FILTER_N = 16;
+  //int  pressureBuffer[PRESSURE_FILTER_N];
+  //int  bufferIdx;
+  //bool bufferFull;
 
 };
 
