@@ -149,20 +149,23 @@ void setup() {
     Serial.println("AMS color sensor failed to connect. Skipping...");
   }
 
+  adc.adc0->calibrate();
+  adc.adc1->calibrate();
+
   // adc0 for pressure only
   adc.adc0->setAveraging(32);
   adc.adc0->setResolution(12);
-  adc.adc0->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_LOW_SPEED);
-  adc.adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
-  adc.adc0->startContinuous(PRESSURE_PIN);
+  adc.adc0->setConversionSpeed(ADC_CONVERSION_SPEED::LOW_SPEED);
+  adc.adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::LOW_SPEED);
+  //adc.adc0->startContinuous(PRESSURE_PIN);
   //dmaPressure.init(&adc, ADC_0);
 
   // adc1 for temperature and cold junction if needed
   adc.adc1->setAveraging(16);
   adc.adc1->setResolution(12);
-  adc.adc1->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_LOW_SPEED);
-  adc.adc1->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
-  adc.adc1->startContinuous(THERMISTOR_PIN);
+  adc.adc1->setConversionSpeed(ADC_CONVERSION_SPEED::LOW_SPEED);
+  adc.adc1->setSamplingSpeed(ADC_SAMPLING_SPEED::LOW_SPEED);
+  //adc.adc1->startContinuous(THERMISTOR_PIN);
   //dmaTemperature.init(&adc, ADC_1);
 
   //surface_control.init(number_of_waypoints, waypoints, DELAY);
@@ -214,7 +217,7 @@ void loop() {
     printer.printValue(8,imu.printRollPitchHeading());        
     printer.printValue(9,imu.printAccels());
     //printer.printValue(10,print_temperature_status(temperatureBuf[0], adc.adc1->analogRead(THERMOCOUPLE_PIN)));
-    printer.printValue(10,print_temperature_status(adc.adc1->analogReadContinuous(), 0));
+    printer.printValue(10,print_temperature_status(adc.adc1->readSingle(), 0));
     //printer.printValue(11,print_pressure_status(pressureBuf[0]));
     //printer.printValue(11,print_pressure_status(adc.adc0->analogRead(PRESSURE_PIN)));
     printer.printValue(11,print_pressure_status(filteredPressure));
@@ -316,14 +319,15 @@ void loop() {
   }
 
 
-  updatePressure(adc.adc0->analogReadContinuous());
+  updatePressure(adc.adc0->readSingle());
+  adc.adc0->startSingleRead(PRESSURE_PIN);
+  adc.adc1->startSingleRead(THERMISTOR_PIN);
   //watchdog.feed();
 }
 
 void updatePressure(uint16_t sample) {
   filteredPressure = filteredPressure * (1.0 - alpha) + sample * alpha;
 }
-
 
 void EFA_Detected(void) {
   EF_States[0] = 0;
