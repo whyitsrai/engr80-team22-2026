@@ -96,7 +96,7 @@ bool amsConnected = false; //Initially sets connected status to false to avoid g
 // Uncomment to bypass closed-loop depth + attitude control and run a fixed,
 // open-loop, time-based motor sequence instead. Sensors and SD logging keep
 // running either way. Leave commented for the normal depth-control mission.
-// #define USE_TIMED_MANEUVER
+#define USE_TIMED_MANEUVER
 
 #ifdef USE_TIMED_MANEUVER
 
