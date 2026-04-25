@@ -92,6 +92,124 @@ public:
 AS7262Sampler as7262_sampler;
 bool amsConnected = false; //Initially sets connected status to false to avoid getting false positive and crashing the sensor
 
+///////////////////* Contingency: Timed Maneuver *////////////////
+// Uncomment to bypass closed-loop depth + attitude control and run a fixed,
+// open-loop, time-based motor sequence instead. Sensors and SD logging keep
+// running either way. Leave commented for the normal depth-control mission.
+// #define USE_TIMED_MANEUVER
+
+#ifdef USE_TIMED_MANEUVER
+
+// Per-leg durations, in seconds
+const float DESCENT_1_SEC = 10.0f;
+const float FORWARD_SEC   = 10.0f;
+const float DESCENT_2_SEC = 10.0f;
+const float REVERSE_SEC   = 10.0f;
+const float ASCENT_SEC    = 60.0f;
+
+// Motor power magnitudes (-255..255). Must exceed MOTOR_DEADZONE (34) to spin.
+const int VERTICAL_POWER   = 250;   // C & D during descent (+) / ascent (-)
+const int HORIZONTAL_POWER = 250;  // A & B during forward / reverse
+
+// Pause between legs
+const unsigned long PAUSE_MS = 500;
+
+enum ManeuverStage {
+  STAGE_DESCENT_1 = 0,
+  STAGE_PAUSE_1,
+  STAGE_FORWARD,
+  STAGE_PAUSE_2,
+  STAGE_DESCENT_2,
+  STAGE_PAUSE_3,
+  STAGE_REVERSE,
+  STAGE_PAUSE_4,
+  STAGE_ASCENT,
+  STAGE_DONE
+};
+
+int           maneuverStage          = STAGE_DESCENT_1;
+unsigned long maneuverStageStart     = 0;
+bool          maneuverStageAnnounced = false;
+bool          maneuverInitialized    = false;
+
+void announceManeuver(const char * msg) {
+  if (!maneuverStageAnnounced) { Serial.println(msg); maneuverStageAnnounced = true; }
+}
+
+void advanceManeuverStage(unsigned long elapsed, unsigned long duration) {
+  if (elapsed >= duration) {
+    maneuverStage++;
+    maneuverStageStart = millis();
+    maneuverStageAnnounced = false;
+  }
+}
+
+void runTimedManeuver() {
+  if (!maneuverInitialized) {
+    maneuverStageStart = millis();
+    maneuverInitialized = true;
+  }
+  unsigned long now     = millis();
+  unsigned long elapsed = now - maneuverStageStart;
+
+  switch (maneuverStage) {
+    case STAGE_DESCENT_1:
+      announceManeuver("[1] Descent #1: C & D down");
+      motor_driver.drive(0, 0, VERTICAL_POWER, VERTICAL_POWER);
+      advanceManeuverStage(elapsed, (unsigned long)(DESCENT_1_SEC * 1000));
+      break;
+    case STAGE_PAUSE_1:
+      announceManeuver("    pause");
+      motor_driver.drive(0, 0, 0, 0);
+      advanceManeuverStage(elapsed, PAUSE_MS);
+      break;
+    case STAGE_FORWARD:
+      announceManeuver("[2] Forward: A & B forward");
+      motor_driver.drive(HORIZONTAL_POWER, HORIZONTAL_POWER, 0, 0);
+      advanceManeuverStage(elapsed, (unsigned long)(FORWARD_SEC * 1000));
+      break;
+    case STAGE_PAUSE_2:
+      announceManeuver("    pause");
+      motor_driver.drive(0, 0, 0, 0);
+      advanceManeuverStage(elapsed, PAUSE_MS);
+      break;
+    case STAGE_DESCENT_2:
+      announceManeuver("[3] Descent #2: C & D down");
+      motor_driver.drive(0, 0, VERTICAL_POWER, VERTICAL_POWER);
+      advanceManeuverStage(elapsed, (unsigned long)(DESCENT_2_SEC * 1000));
+      break;
+    case STAGE_PAUSE_3:
+      announceManeuver("    pause");
+      motor_driver.drive(0, 0, 0, 0);
+      advanceManeuverStage(elapsed, PAUSE_MS);
+      break;
+    case STAGE_REVERSE:
+      announceManeuver("[4] Reverse: A & B reverse");
+      motor_driver.drive(-HORIZONTAL_POWER, -HORIZONTAL_POWER, 0, 0);
+      advanceManeuverStage(elapsed, (unsigned long)(REVERSE_SEC * 1000));
+      break;
+    case STAGE_PAUSE_4:
+      announceManeuver("    pause");
+      motor_driver.drive(0, 0, 0, 0);
+      advanceManeuverStage(elapsed, PAUSE_MS);
+      break;
+    case STAGE_ASCENT:
+      announceManeuver("[5] Terminal ascent: C & D up");
+      motor_driver.drive(0, 0, -VERTICAL_POWER, -VERTICAL_POWER);
+      advanceManeuverStage(elapsed, (unsigned long)(ASCENT_SEC * 1000));
+      break;
+    case STAGE_DONE:
+      if (!maneuverStageAnnounced) {
+        motor_driver.drive(0, 0, 0, 0);
+        Serial.println("[DONE] Contingency timed maneuver complete. All motors OFF.");
+        maneuverStageAnnounced = true;
+      }
+      break;
+  }
+}
+
+#endif  // USE_TIMED_MANEUVER
+
 ////////////////////////* Setup *////////////////////////////////
 
 void setup() {
@@ -156,6 +274,12 @@ void setup() {
 
   xy_state_estimator.init();
   z_state_estimator.init();
+
+#ifdef USE_TIMED_MANEUVER
+  Serial.println(">>> MODE: CONTINGENCY TIMED MANEUVER (open-loop) <<<");
+#else
+  Serial.println(">>> MODE: NORMAL DEPTH CONTROL <<<");
+#endif
 
   printer.printMessage("Starting main loop", 10);
   loopStartTime = millis();
@@ -241,7 +365,14 @@ void loop() {
     depth_control.lastExecutionTime = currentTime;
 
     // Convert raw Teensy ADC reading to depth [m] and update z_state_estimator
+    // (kept in both modes so depth data is still logged during contingency)
     z_state_estimator.updateState(analogRead(PRESSURE_PIN));
+
+#ifdef USE_TIMED_MANEUVER
+    // Contingency: open-loop, time-based motor sequence
+    runTimedManeuver();
+#else
+    // Normal mission: closed-loop depth + attitude control
 
     // Outer loop: depth -> uV
     if (!depth_control.atDepth) {
@@ -256,6 +387,7 @@ void loop() {
 
     // A, B are horizontal thrusters - zero for a pure dive mission
     motor_driver.drive(0, 0, motorC_cmd, motorD_cmd);
+#endif
   }
   gps.read(&GPS);  // blocking UART calls, need to check for UART every cycle
 
